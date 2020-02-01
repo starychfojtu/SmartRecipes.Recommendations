@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "SmartRecipes.Playground", "SmartRecipes.Playground\SmartRecipes.Playground.fsproj", "{00544D2B-EDEA-4B13-A3A3-8E87C9F260B2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{00544D2B-EDEA-4B13-A3A3-8E87C9F260B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00544D2B-EDEA-4B13-A3A3-8E87C9F260B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00544D2B-EDEA-4B13-A3A3-8E87C9F260B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{00544D2B-EDEA-4B13-A3A3-8E87C9F260B2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
