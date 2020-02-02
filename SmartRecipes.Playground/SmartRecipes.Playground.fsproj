@@ -6,8 +6,11 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="Library.fs" />
         <Compile Include="Model.fs" />
         <Compile Include="DataStore.fs" />
+        <Compile Include="TfIdfCosineSimilarityStructuredData.fs" />
+        <Compile Include="TfIdfCosineSimilarityTextData.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 
