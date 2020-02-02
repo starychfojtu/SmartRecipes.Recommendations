@@ -18,25 +18,25 @@ let shoppingList = [
 ]
 
 // Term frequency ~ ingredient frequency in single recipe is 1 by default, but for chosen and most used unit, its amount is taken if present
-let termFrequency ingredient =
+let termFrequency foodstuffAmount =
     let amount = 
-        match ingredient.Unit with
-        | Some "cup" -> ingredient.Amount
-        | Some "pieces" -> ingredient.Amount
-        | Some "pound" -> ingredient.Amount
+        match foodstuffAmount.Unit with
+        | Some "cup" -> foodstuffAmount.Value
+        | Some "pieces" -> foodstuffAmount.Value
+        | Some "pound" -> foodstuffAmount.Value
         | Some _ -> None
         | None -> None
         
     Option.defaultValue 1.0 amount
 
-let tfIdf statistics ingredient =
-    let documentFrequency = Map.find ingredient.FoodstuffId statistics.FoodstuffFrequencies
-    ingredient.FoodstuffId, Math.Log10(statistics.NumberOfRecipes / documentFrequency) * (termFrequency ingredient)
+let tfIdf statistics foodstuffAmount =
+    let documentFrequency = Map.find foodstuffAmount.FoodstuffId statistics.FoodstuffFrequencies
+    foodstuffAmount.FoodstuffId, Math.Log10(statistics.NumberOfRecipes / documentFrequency) * (termFrequency foodstuffAmount)
     
 type Vector = Map<Guid, float>
 
-let vectorize statistics recipe: Vector =
-    List.map (tfIdf statistics) recipe.Ingredients |> Map.ofList
+let vectorize statistics foodstuffAmounts: Vector =
+    List.map (tfIdf statistics) foodstuffAmounts |> Map.ofList
     
 let mapSecond f (fst, snd) = (fst, f snd)
 let first (fst, _) = fst
@@ -47,7 +47,7 @@ let computeStatistics (recipes: Recipe list) =
     let foodstuffFrequencies =
         recipes
         |> List.collect (fun r -> r.Ingredients)
-        |> List.groupBy (fun i -> i.FoodstuffId)
+        |> List.groupBy (fun i -> i.Amount.FoodstuffId)
         |> List.map (mapSecond (List.distinctBy (fun i -> i.RecipeId) >> List.length >> float))
         |> Map.ofList
         
@@ -80,15 +80,26 @@ let main argv =
     let recipes = DataStore.getRecipes ()
     let statistics = computeStatistics recipes
     
-    let recipe = List.item 20 recipes
-    let inputVector = vectorize statistics recipe
+    let inputVector = vectorize statistics [
+        {
+            Value = Some 2.0
+            Unit = Some "pound"
+            FoodstuffId = Guid("cbd25042-ef0b-467f-8dfd-4ff70c2e5824") // Chicken breast
+        };
+        {
+            Value = None
+            Unit = None
+            FoodstuffId = Guid("1c5681bb-12af-4d53-b93b-a4e3f3b16893") // Rice
+        }
+    ]
     
     let topRecipesForFirstOne =
         recipes
-        |> List.map (fun r -> (r, vectorize statistics r |> cosineSimilarity inputVector))
+        |> List.map (fun r -> (r, r.Ingredients |> List.map (fun i -> i.Amount) |> vectorize statistics |> cosineSimilarity inputVector))
         |> List.sortByDescending second
         |> List.take 10
         
+    let best0 = List.item 0 topRecipesForFirstOne
     let best1 = List.item 1 topRecipesForFirstOne
     let best2 = List.item 2 topRecipesForFirstOne
     let best3 = List.item 3 topRecipesForFirstOne

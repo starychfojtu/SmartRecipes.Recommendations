@@ -6,12 +6,16 @@ type Foodstuff = {
     Name: string
 }
 
-type Ingredient = {
+type FoodstuffAmount = {
     Unit: string option
-    Amount: float option
+    Value: float option
+    FoodstuffId: Guid
+}
+
+type Ingredient = {
+    Amount: FoodstuffAmount
     Comment: string option
     DisplayLine: string
-    FoodstuffId: Guid
     RecipeId: Guid
 }
 

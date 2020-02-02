@@ -32,7 +32,7 @@ let getIngredients () =
             let amount = Sql.readDecimal "amount" row |> Option.map float
             let! foodstuffId = Sql.readUuid "foodstuffid" row
             let! recipeId = Sql.readUuid "recipeid" row
-            return { Unit = unit; Amount = amount; Comment = comment; DisplayLine = displayLine; FoodstuffId = foodstuffId; RecipeId = recipeId }
+            return { Amount = { Value = amount; Unit = unit; FoodstuffId = foodstuffId }; Comment = comment; DisplayLine = displayLine; RecipeId = recipeId }
         })
     
 let getRecipes () =
