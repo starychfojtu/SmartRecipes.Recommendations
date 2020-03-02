@@ -23,6 +23,23 @@ type DataSetStatistics = {
     TermFrequencies: Map<string, float>
 }
 
+// Notes:
+// Foodstuff similarity ? Adding more of the similar from the similarity graph
+// All subsets of words in ingredient
+// 2 algorithms - use output of both (exploration) - cosine + another (euclied) similarity, uninon/intersection
+// More inputs for this program, better readable output
+// Send link - https://www.offerzen.com/blog/how-to-build-a-content-based-recommender-system-for-your-product
+// Word embedding (word2vec) + aggregation of foodstuff vectors to get recipe vector
+// doc2vec - for the whole recipe
+// classification of union of vector sets
+// compare each ingredient with nearest ingredient from the other recipe
+// basic sanity test (at least something in output, etc.)
+// dotaznik lidem jestli je doporuceni vhodne
+// algorthim diversity - how they differ, script to tell how much
+
+
+// 1) Descriptipn ? Simple NLP ?
+// 2) same method as fo structured
 let termFrequency = 1.0
 
 let tfIdf statistics term =
@@ -62,5 +79,6 @@ let recommend recipes inputs =
         |> List.map (fun r -> let vector = r.Ingredients |> List.collect ingredientToWords |> vectorize statistics in (r,  vector, cosineSimilarity inputVector vector))
         |> List.sortByDescending (fun (_, _, sim) -> sim)
         |> List.take 10
+        |> List.map (fun (r, _, _) -> r)
         
-    inputVector, recommendations
+    recommendations

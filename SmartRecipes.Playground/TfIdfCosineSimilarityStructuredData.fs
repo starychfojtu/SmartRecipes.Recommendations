@@ -56,3 +56,4 @@ let recommend recipes foodstuffAmounts =
     |> List.map (fun r -> (r, r.Ingredients |> List.map (fun i -> i.Amount) |> vectorize statistics |> cosineSimilarity inputVector))
     |> List.sortByDescending second
     |> List.take 10
+    |> List.map first
