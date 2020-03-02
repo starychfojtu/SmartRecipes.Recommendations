@@ -309,4 +309,8 @@ let main argv =
     //
     // Both methods failed on large basket.
     
+    // TODO:
+    // - add improved structural algorithm
+    // - add simple intersections (Jaccard similarity for example for comparison).
+    
     0 // return an integer exit code

@@ -23,12 +23,11 @@ type DataSetStatistics = {
     TermFrequencies: Map<string, float>
 }
 
-// Notes:
+// TODO: Notes:
 // Foodstuff similarity ? Adding more of the similar from the similarity graph
 // All subsets of words in ingredient
 // 2 algorithms - use output of both (exploration) - cosine + another (euclied) similarity, uninon/intersection
 // More inputs for this program, better readable output
-// Send link - https://www.offerzen.com/blog/how-to-build-a-content-based-recommender-system-for-your-product
 // Word embedding (word2vec) + aggregation of foodstuff vectors to get recipe vector
 // doc2vec - for the whole recipe
 // classification of union of vector sets
