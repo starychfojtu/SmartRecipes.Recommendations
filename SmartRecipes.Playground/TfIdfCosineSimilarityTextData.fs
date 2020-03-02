@@ -51,9 +51,13 @@ type Vector = Map<string, float>
 let vectorize statistics terms: Vector =
     List.map (tfIdf statistics) terms |> Map.ofList
     
+let normalizeTerm (s: string) =
+    s.ToLowerInvariant()
+    
 let ingredientToWords ingredient =
     ingredient.DisplayLine.Split(' ', StringSplitOptions.None)
     |> Array.toList
+    |> List.map normalizeTerm
     |> List.where (fun w -> match ingredient.Amount.Unit with Some u -> u <> w | None -> true)
     |> List.where (Seq.forall (Char.IsDigit >> not))
     |> List.where (Seq.exists (Char.IsLetter))
@@ -73,7 +77,7 @@ let computeStatistics (recipes: Recipe list) =
 let recommend recipes inputs =
     let statistics = computeStatistics recipes
     
-    let inputVector = vectorize statistics inputs
+    let inputVector = vectorize statistics (inputs |> List.map normalizeTerm)
     let recommendations = 
         recipes
         |> List.map (fun r -> let vector = r.Ingredients |> List.collect ingredientToWords |> vectorize statistics in (r,  vector, cosineSimilarity inputVector vector))
