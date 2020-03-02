@@ -38,7 +38,7 @@ type DataSetStatistics = {
 // algorthim diversity - how they differ, script to tell how much
 
 
-// 1) Descriptipn ? Simple NLP ?
+// 1) Descriptipn ? Simple NLP ? -> Lemmatization
 // 2) same method as fo structured
 let termFrequency = 1.0
 

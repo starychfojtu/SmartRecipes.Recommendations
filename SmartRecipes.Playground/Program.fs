@@ -199,24 +199,25 @@ let main argv =
         
         
     // Section - much more ingredients, simulating real shopping list
-    
+    //
+    // Pretty disappointing results, pretty low on matches, not really much ingredients combined (probably due to lack of such recipes?).
     run
         "Simulating classic shopping list."
         [
             {
                 Value = None
                 Unit = None
-                FoodstuffId = Guid("273bc61f-58ce-46f9-887b-00bf391ea839") // Pork chops
+                FoodstuffId = Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241") // Beef
             };
             {
                 Value = None
                 Unit = None
-                FoodstuffId = Guid("f49d75ae-3996-429b-ba9c-5b62e1e00f85") // Chicken thighs
+                FoodstuffId = Guid("274f4bc5-63c8-4f46-aba1-a409b5e78dd4") // Carrots
             };
             {
                 Value = None
                 Unit = None
-                FoodstuffId = Guid("7a09904e-15b6-4963-9d4b-e7e37e25ce37") // Cheddar cheese
+                FoodstuffId = Guid("241505a7-c6d7-4a7b-a913-aad0389c4606") // Tomatoes
             };
             {
                 Value = None
@@ -246,6 +247,66 @@ let main argv =
             "bell";
             "peppers"
         ]
-    
+        
+    // INPUT: Lasagna basket
+    //
+    // Neither did recommend lasagna directly, but we can see pretty good recommendations, similar foods to Lasagna even.
+    //
+    // Structured based recommended recipe even with 5/5 hits, basically ideal recipe.
+    //
+    // Text based is noticeably worse.
+    run
+        "Lasagna basket."
+        [
+            {
+                Value = None
+                Unit = None
+                FoodstuffId = Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241") // Beef
+            };
+            {
+                Value = None
+                Unit = None
+                FoodstuffId = Guid("274f4bc5-63c8-4f46-aba1-a409b5e78dd4") // Carrots
+            };
+            {
+                Value = None
+                Unit = None
+                FoodstuffId = Guid("241505a7-c6d7-4a7b-a913-aad0389c4606") // Tomatoes
+            };
+            {
+                Value = None
+                Unit = None
+                FoodstuffId = Guid("7dc3db3c-8422-473d-8344-2f8653157581") // Parmesan cheese
+            };
+        ]
+        [
+            "beef";
+            "ground";
+            "carrot";
+            "tomatoes";
+            "parmesan";
+        ]
+        
+    // Overall impressions
+    // Structured:
+    // Pros:
+    // - ability to define exactly the ingredient I have
+    // - ability to put amount of given ingredient (which proven to be very relevant for the results)
+    // - overall good recommendations with decent hit rate
+    // Cons:
+    // - sometimes single-ingredient meals, too strict
+    // - impossibility to define what is not in database
+    // - heavily dependent on data quality (deduplication)
+    // - no sense of similarity between foodstuffs (red vs white onion)
+    //
+    // Text-based:
+    // Pros:
+    // - ability to define more vaguely what is the content (red vs white onion will still hit onion word)
+    // - not too dependent on data quality
+    // Cons:
+    // - no ability to define exactly what I have (the first advantage is also a disadvantage, potato vs potato chips)
+    // - not really precise matches, overall worse recommendations
+    //
+    // Both methods failed on large basket.
     
     0 // return an integer exit code
