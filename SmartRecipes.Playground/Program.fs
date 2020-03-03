@@ -140,33 +140,6 @@ let main argv =
             "cheese";
         ]
         
-    // INPUT: aiming to get this recipe recommended - https://www.allrecipes.com/recipe/223042/chicken-parmesan/,
-    // but providing more info about amounts in structured method
-    //
-    // I put crazy values there, since small ones did not change much, but it really helped.
-    // The structured method provided very relevant results, even tho the desired recipe still misses because of chicken ingredient mismatch.
-    // TODO: put more weight on the ingredient amounts.
-    run
-        "Aiming to get chicken parmesan with more amount info."
-        [
-            {
-                Value = Some 30.0
-                Unit = Some "pound"
-                FoodstuffId = Guid("cbd25042-ef0b-467f-8dfd-4ff70c2e5824") // Chicken breasts
-            };
-            {
-                Value = Some 100.0
-                Unit = Some "cup"
-                FoodstuffId = Guid("7dc3db3c-8422-473d-8344-2f8653157581") // Parmesan cheese
-            }
-        ]
-        [
-            "chicken";
-            "breasts";
-            "parmesan";
-            "cheese";
-        ]
-        
     // Section with https://www.allrecipes.com/recipe/90105/butter-chickpea-curry/
     // It is a bit harder recipe with specific ingredients
         
@@ -192,6 +165,49 @@ let main argv =
             }
         ]
         [
+            "chickpeas";
+            "garam";
+            "masala";
+        ]
+        
+    // INPUT https://www.allrecipes.com/recipe/223042/chicken-parmesan/ and https://www.allrecipes.com/recipe/90105/butter-chickpea-curry/
+    // Both recipes were recommended individually, this will merge their inputs together
+    //
+    // Structured one recommended mainly Garam masala, since it is special (which is pretty good on one hand, if I bought garam masala, I probably want to use it).
+    // However, when I put a lot of value/unit on chicken and parmasan, it got recommended over masala.
+    // TODO: I might want to tune spices like garam masala or other super rare ingredients.
+    //
+    // Text based method did recommend also only Garam masala, but there is no way to tune it from the user perspective by amounts.
+    // On the other hand, it did recommend some masala + chicken recipe (combining accross recipe), probably due to bad structured data for chicken.
+    run
+        "Aiming to get chicken parmesan and butter chickpea curry."
+        [
+            {
+                Value = None
+                Unit = None
+                FoodstuffId = Guid("cbd25042-ef0b-467f-8dfd-4ff70c2e5824") // Chicken breasts
+            };
+            {
+                Value = None
+                Unit = None
+                FoodstuffId = Guid("7dc3db3c-8422-473d-8344-2f8653157581") // Parmesan cheese
+            };
+            {
+                Value = None
+                Unit = None
+                FoodstuffId = Guid("24b1b115-07e9-4d8f-b0a1-a38639654b7d") // Garam masala
+            };
+            {
+                Value = None
+                Unit = None
+                FoodstuffId = Guid("b17a087c-dcd1-4bec-b481-00d2165fd18a") // Chickpeas
+            }
+        ]
+        [
+            "chicken";
+            "breasts";
+            "parmesan";
+            "cheese";
             "chickpeas";
             "garam";
             "masala";
@@ -310,7 +326,10 @@ let main argv =
     // Both methods failed on large basket.
     
     // TODO:
+    // - add a case fitting for single 2 recipes, together (merge 2 cases to 1)
     // - add improved structural algorithm
-    // - add simple intersections (Jaccard similarity for example for comparison).
+    // - add simple intersections (Jaccard similarity for example for comparison)
+    //    - similarity should be a problem for recipes with same intersection (no notion of difference or relevance of other ingredients)
+    //    - also similarity has no notion of amounts
     
     0 // return an integer exit code

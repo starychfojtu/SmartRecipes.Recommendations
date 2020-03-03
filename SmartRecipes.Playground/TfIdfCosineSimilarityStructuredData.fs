@@ -18,8 +18,9 @@ type DataSetStatistics = {
 
 // TODO: Notes in improvements
 // - put much more weight on termFrequency (exponential)
-// - penalize recipes with small number of ingredients (especially 1-3)
+// - penalize recipes with small number of ingredients (especially 1-3, some normal distribution, to also penalize big ones ?)
 // - foodstuff similarity (food2vec) to give at least some sense to red vs. white onion - maybe even consider some foodstuff for identic ?
+//     - this might lead to different method (like finding the nearest ingredient for every ingredient in the other recipe)
 
 // Term frequency ~ ingredient frequency in single recipe is 1 by default, but for chosen and most used unit, its amount is taken if present
 let termFrequency foodstuffAmount =
