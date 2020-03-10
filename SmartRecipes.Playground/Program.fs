@@ -5,16 +5,18 @@ open SmartRecipes.Playground.Model
 
 // Learn more about F# at http://fsharp.org
 
+
 let printRecipe doesIngredientMatch (recipe: Recipe) =
-    printfn "Name: %s" recipe.Name
-    printfn "Ingredients: "
+    printfn "Name: %s <br>" recipe.Name
+    printfn "Ingredients: <br>"
     for ingredient in recipe.Ingredients do
-        printfn "[%s] %s" (if doesIngredientMatch ingredient then "X" else "") ingredient.DisplayLine
-    printfn ""
+        printfn "[%s] %s <br>" (if doesIngredientMatch ingredient then "X" else "") ingredient.DisplayLine
+    printfn "<br>"
     
 let printRecipes doesIngredientMatch recipes =
     for recipe in recipes do
         printRecipe doesIngredientMatch recipe
+    
     
 let showRecommendations recipes input1 input2 =
     let firstMethodRecommendations = TfIdfCosineSimilarityStructuredData.recommend recipes input1
@@ -27,32 +29,46 @@ let showRecommendations recipes input1 input2 =
         |> List.map (fun (name, recipes) -> (name, Seq.length recipes))
         |> List.sortByDescending second
     
-    printfn "Overall statistics"
+    printfn "Overall statistics <br>"
     for (recipe, count) in counts do
-        printfn "Recipe: %s; Count: %i" recipe count
+        printfn "Recipe: %s; Count: %i <br>" recipe count
     printfn ""
     
-    printfn "---------------------------"
-    printfn "TF-IDF with structured data"
-    printfn "---------------------------"
+    printfn "<div>"
+    printfn "<div style=\"float: left;\">"
+    printfn "--------------------------- <br>"
+    printfn "TF-IDF with structured data <br>"
+    printfn "--------------------------- <br>"
     printRecipes (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) input1) firstMethodRecommendations
-    printfn ""
+    printfn "</div>"
     
-    printfn "---------------------------"
-    printfn "TF-IDF with text data"
-    printfn "---------------------------"
+    printfn "<div style=\"float: left;\">"
+    printfn "--------------------------- <br>"
+    printfn "TF-IDF with text data <br>"
+    printfn "--------------------------- <br>"
     printRecipes (fun i -> List.exists (fun (t: string) -> i.DisplayLine.ToLowerInvariant().Contains(t)) input2) secondMethodRecommendations
-    printfn ""
+    printfn "<br>"
+    printfn "</div>"
+    
+    printfn "</div>"
 
+let printHeader () =
+    printfn "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>SmartRecipes recommendations</title></head><body>"
+    
+let printFooter () =
+    printfn "</body></html>"
     
 [<EntryPoint>]
 let main argv =
+    printHeader ()
+    
     let recipes = DataStore.getRecipes ()
     let run introText input1 input2 =
-        printfn "-------------RUN-START--------------"
-        printfn introText
+        printfn "-------------RUN-START-------------- <br>"
+        printfn "%s <br>" introText
         showRecommendations recipes input1 input2
-        printfn "-------------RUN-END----------------"
+        printfn "-------------RUN-END---------------- <br>"
+        printfn "<div style=\"clear: both;\"></div>"
     
     // INPUT: small number of ingredients
     //
@@ -303,6 +319,8 @@ let main argv =
             "parmesan";
         ]
         
+    printFooter ()
+        
     // Overall impressions
     // Structured:
     // Pros:
@@ -326,6 +344,9 @@ let main argv =
     // Both methods failed on large basket.
     
     // TODO:
+    // - Inverse index implementation ? (Faster)
+    // - SVD ?? changing the basis from foodstuff to foodstuff groups which can be substituted (red onion, vs white onion),
+    //     problem is that we have to decide this on binary basis, but only other solution is 2vec probably
     // - add a case fitting for single 2 recipes, together (merge 2 cases to 1)
     // - add improved structural algorithm
     // - add simple intersections (Jaccard similarity for example for comparison)
