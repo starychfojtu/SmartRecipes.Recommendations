@@ -7,7 +7,7 @@ open SmartRecipes.Playground.Model
 
 
 let printRecipe doesIngredientMatch (recipe: Recipe) =
-    printfn "Name: %s <br>" recipe.Name
+    printfn "<h3>%s</h3><br>" recipe.Name
     printfn "Ingredients: <br>"
     for ingredient in recipe.Ingredients do
         printfn "[%s] %s <br>" (if doesIngredientMatch ingredient then "X" else "") ingredient.DisplayLine
@@ -37,20 +37,21 @@ let showRecommendations recipes input1 input2 =
     printfn "<div>"
     printfn "<div style=\"float: left;\">"
     printfn "--------------------------- <br>"
-    printfn "TF-IDF with structured data <br>"
+    printfn "<h2>TF-IDF with structured data</h2><br>"
     printfn "--------------------------- <br>"
     printRecipes (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) input1) firstMethodRecommendations
     printfn "</div>"
     
     printfn "<div style=\"float: left;\">"
     printfn "--------------------------- <br>"
-    printfn "TF-IDF with text data <br>"
+    printfn "<h2>TF-IDF with text data</h2><br>"
     printfn "--------------------------- <br>"
     printRecipes (fun i -> List.exists (fun (t: string) -> i.DisplayLine.ToLowerInvariant().Contains(t)) input2) secondMethodRecommendations
     printfn "<br>"
     printfn "</div>"
     
     printfn "</div>"
+    printfn "<div style=\"clear: both;\"></div>"
 
 let printHeader () =
     printfn "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>SmartRecipes recommendations</title></head><body>"
@@ -65,10 +66,9 @@ let main argv =
     let recipes = DataStore.getRecipes ()
     let run introText input1 input2 =
         printfn "-------------RUN-START-------------- <br>"
-        printfn "%s <br>" introText
+        printfn "<h1>%s</h1><br>" introText
         showRecommendations recipes input1 input2
         printfn "-------------RUN-END---------------- <br>"
-        printfn "<div style=\"clear: both;\"></div>"
     
     // INPUT: small number of ingredients
     //
