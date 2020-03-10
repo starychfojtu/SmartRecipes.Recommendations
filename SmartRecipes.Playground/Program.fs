@@ -1,10 +1,9 @@
-﻿open System
-open SmartRecipes.Playground.Library
+﻿open SmartRecipes.Playground.Library
 open SmartRecipes.Playground
 open SmartRecipes.Playground.Model
+open System
 
 // Learn more about F# at http://fsharp.org
-
 
 let printRecipe doesIngredientMatch (recipe: Recipe) =
     printfn "<h3>%s</h3><br>" recipe.Name
@@ -18,9 +17,10 @@ let printRecipes doesIngredientMatch recipes =
         printRecipe doesIngredientMatch recipe
     
     
-let showRecommendations recipes input1 input2 =
-    let firstMethodRecommendations = TfIdfCosineSimilarityStructuredData.recommend recipes input1
-    let secondMethodRecommendations = TfIdfCosineSimilarityTextData.recommend recipes input2
+let showRecommendations recipes input1 input2 input3 =
+    let firstMethodRecommendations = JaccardSimilarity.recommend recipes input1
+    let secondMethodRecommendations = TfIdfCosineSimilarityStructuredData.recommend recipes input2
+    let thirdMethodRecommendations = TfIdfCosineSimilarityTextData.recommend recipes input3
     
     let allRecipes = List.concat [ firstMethodRecommendations; secondMethodRecommendations ]
     let counts =
@@ -37,16 +37,24 @@ let showRecommendations recipes input1 input2 =
     printfn "<div>"
     printfn "<div style=\"float: left;\">"
     printfn "--------------------------- <br>"
+    printfn "<h2>Jaccard similarity</h2><br>"
+    printfn "--------------------------- <br>"
+    printRecipes (fun i -> List.exists (fun id -> id = i.Amount.FoodstuffId) input1) secondMethodRecommendations
+    printfn "</div>"
+    
+    printfn "<div>"
+    printfn "<div style=\"float: left;\">"
+    printfn "--------------------------- <br>"
     printfn "<h2>TF-IDF with structured data</h2><br>"
     printfn "--------------------------- <br>"
-    printRecipes (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) input1) firstMethodRecommendations
+    printRecipes (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) input2) secondMethodRecommendations
     printfn "</div>"
     
     printfn "<div style=\"float: left;\">"
     printfn "--------------------------- <br>"
     printfn "<h2>TF-IDF with text data</h2><br>"
     printfn "--------------------------- <br>"
-    printRecipes (fun i -> List.exists (fun (t: string) -> i.DisplayLine.ToLowerInvariant().Contains(t)) input2) secondMethodRecommendations
+    printRecipes (fun i -> List.exists (fun (t: string) -> i.DisplayLine.ToLowerInvariant().Contains(t)) input3) thirdMethodRecommendations
     printfn "<br>"
     printfn "</div>"
     
@@ -64,10 +72,10 @@ let main argv =
     printHeader ()
     
     let recipes = DataStore.getRecipes ()
-    let run introText input1 input2 =
+    let run introText input1 input2 input3 =
         printfn "-------------RUN-START-------------- <br>"
         printfn "<h1>%s</h1><br>" introText
-        showRecommendations recipes input1 input2
+        showRecommendations recipes input1 input2 input3
         printfn "-------------RUN-END---------------- <br>"
     
     // INPUT: small number of ingredients
@@ -76,6 +84,10 @@ let main argv =
     // TOP 1 for text-based is much better
     run
         "Ingredient based - searching for ground beef and peppers."
+        [
+            Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241"); // Beef
+            Guid("27b43955-3361-48a1-b16f-9d339c808b20"); // Bell peppers
+        ]
         [
             {
                 Value = Some 2.0
@@ -108,6 +120,10 @@ let main argv =
     run
         "Aiming to get chicken parmesan without much amount info."
         [
+            Guid("cbd25042-ef0b-467f-8dfd-4ff70c2e5824"); // Chicken breasts
+            Guid("7dc3db3c-8422-473d-8344-2f8653157581"); // Parmesan cheese
+        ]
+        [
             {
                 Value = Some 2.0
                 Unit = Some "pound"
@@ -137,6 +153,10 @@ let main argv =
     // TODO: put more weight on the ingredient amounts.
     run
         "Aiming to get chicken parmesan with more amount info."
+        [
+            Guid("cbd25042-ef0b-467f-8dfd-4ff70c2e5824"); // Chicken breasts
+            Guid("7dc3db3c-8422-473d-8344-2f8653157581"); // Parmesan cheese
+        ]
         [
             {
                 Value = Some 30.0
@@ -169,6 +189,10 @@ let main argv =
     run
         "Aiming to get butter chickpea curry."
         [
+            Guid("24b1b115-07e9-4d8f-b0a1-a38639654b7d"); // Garam masala
+            Guid("b17a087c-dcd1-4bec-b481-00d2165fd18a"); // Chickpeas
+        ]
+        [
             {
                 Value = None
                 Unit = None
@@ -197,6 +221,12 @@ let main argv =
     // On the other hand, it did recommend some masala + chicken recipe (combining accross recipe), probably due to bad structured data for chicken.
     run
         "Aiming to get chicken parmesan and butter chickpea curry."
+        [
+            Guid("cbd25042-ef0b-467f-8dfd-4ff70c2e5824"); // Chicken breasts
+            Guid("7dc3db3c-8422-473d-8344-2f8653157581"); // Parmesan cheese
+            Guid("24b1b115-07e9-4d8f-b0a1-a38639654b7d"); // Garam masala
+            Guid("b17a087c-dcd1-4bec-b481-00d2165fd18a"); // Chickpeas
+        ]    
         [
             {
                 Value = None
@@ -235,6 +265,14 @@ let main argv =
     // Pretty disappointing results, pretty low on matches, not really much ingredients combined (probably due to lack of such recipes?).
     run
         "Simulating classic shopping list."
+        [
+            Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241"); // Beef
+            Guid("274f4bc5-63c8-4f46-aba1-a409b5e78dd4"); // Carrots
+            Guid("241505a7-c6d7-4a7b-a913-aad0389c4606"); // Tomatoes
+            Guid("80a641dd-f9a3-4484-ba6e-466ceda111f1"); // Yogurt
+            Guid("04c7dad3-657b-4fb6-8df9-a4cc3fb30408"); // Potato
+            Guid("27b43955-3361-48a1-b16f-9d339c808b20"); // Bell peppers
+        ]
         [
             {
                 Value = None
@@ -289,6 +327,12 @@ let main argv =
     // Text based is noticeably worse.
     run
         "Lasagna basket."
+        [
+            Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241"); // Beef
+            Guid("274f4bc5-63c8-4f46-aba1-a409b5e78dd4"); // Carrots
+            Guid("241505a7-c6d7-4a7b-a913-aad0389c4606"); // Tomatoes
+            Guid("7dc3db3c-8422-473d-8344-2f8653157581"); // Parmesan cheese
+        ]
         [
             {
                 Value = None
