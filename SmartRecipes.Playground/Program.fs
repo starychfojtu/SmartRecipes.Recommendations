@@ -18,11 +18,12 @@ let printRecipes doesIngredientMatch recipes =
     
     
 let showRecommendations recipes input1 input2 input3 =
-    let firstMethodRecommendations = JaccardSimilarity.recommend recipes input1
-    let secondMethodRecommendations = TfIdfCosineSimilarityStructuredData.recommend recipes input2
-    let thirdMethodRecommendations = TfIdfCosineSimilarityTextData.recommend recipes input3
+    let firstMethodRecommendations = JaccardSimilarity.recommend recipes input1 10
+    let secondMethodRecommendations = TfIdfCosineSimilarityStructuredData.recommend recipes input2 10
+    let thirdMethodRecommendations = TfIdfCosineSimilarityTextData.recommend recipes input3 10
+    let fourthMethodRecommendations = TfIdfCosineSimilarityStructuredDataWithDynamicAmountAltering.recommend recipes input2 3 10
     
-    let allRecipes = List.concat [ firstMethodRecommendations; secondMethodRecommendations ]
+    let allRecipes = List.concat [ firstMethodRecommendations; secondMethodRecommendations; thirdMethodRecommendations; fourthMethodRecommendations ]
     let counts =
         allRecipes
         |> List.groupBy (fun r -> r.Name)
@@ -39,7 +40,7 @@ let showRecommendations recipes input1 input2 input3 =
     printfn "--------------------------- <br>"
     printfn "<h2>Jaccard similarity</h2><br>"
     printfn "--------------------------- <br>"
-    printRecipes (fun i -> List.exists (fun id -> id = i.Amount.FoodstuffId) input1) secondMethodRecommendations
+    printRecipes (fun i -> List.exists (fun id -> id = i.Amount.FoodstuffId) input1) firstMethodRecommendations
     printfn "</div>"
     
     printfn "<div>"
@@ -56,6 +57,14 @@ let showRecommendations recipes input1 input2 input3 =
     printfn "--------------------------- <br>"
     printRecipes (fun i -> List.exists (fun (t: string) -> i.DisplayLine.ToLowerInvariant().Contains(t)) input3) thirdMethodRecommendations
     printfn "<br>"
+    printfn "</div>"
+    
+    printfn "<div>"
+    printfn "<div style=\"float: left;\">"
+    printfn "--------------------------- <br>"
+    printfn "<h2>TF-IDF with structured data (Iterative)</h2><br>"
+    printfn "--------------------------- <br>"
+    printRecipes (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) input2) fourthMethodRecommendations
     printfn "</div>"
     
     printfn "</div>"
@@ -80,8 +89,9 @@ let main argv =
     
     // INPUT: small number of ingredients
     //
-    // TOP 1 for structured is a meat made only of beef -> not using all ingredients
-    // TOP 1 for text-based is much better
+    // Jaccard similarity recommends recipe with too few ingredients -> tries to minimize the union.
+    // Structured one recommends 
+    //
     run
         "Ingredient based - searching for ground beef and peppers."
         [
@@ -90,7 +100,7 @@ let main argv =
         ]
         [
             {
-                Value = Some 2.0
+                Value = Some 1.0
                 Unit = Some "pound"
                 FoodstuffId = Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241") // Beef
             };
@@ -229,13 +239,13 @@ let main argv =
         ]    
         [
             {
-                Value = None
-                Unit = None
+                Value = Some 2.0
+                Unit = Some "pound"
                 FoodstuffId = Guid("cbd25042-ef0b-467f-8dfd-4ff70c2e5824") // Chicken breasts
             };
             {
-                Value = None
-                Unit = None
+                Value = Some 1.0
+                Unit = Some "pound"
                 FoodstuffId = Guid("7dc3db3c-8422-473d-8344-2f8653157581") // Parmesan cheese
             };
             {
@@ -244,8 +254,8 @@ let main argv =
                 FoodstuffId = Guid("24b1b115-07e9-4d8f-b0a1-a38639654b7d") // Garam masala
             };
             {
-                Value = None
-                Unit = None
+                Value = Some 1.0
+                Unit = Some "pound"
                 FoodstuffId = Guid("b17a087c-dcd1-4bec-b481-00d2165fd18a") // Chickpeas
             }
         ]
@@ -275,33 +285,33 @@ let main argv =
         ]
         [
             {
-                Value = None
-                Unit = None
+                Value = Some 4.0
+                Unit = Some "pound"
                 FoodstuffId = Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241") // Beef
             };
             {
-                Value = None
-                Unit = None
+                Value = Some 5.0
+                Unit = Some "pieces"
                 FoodstuffId = Guid("274f4bc5-63c8-4f46-aba1-a409b5e78dd4") // Carrots
             };
             {
-                Value = None
-                Unit = None
+                Value = Some 5.0
+                Unit = Some "pieces"
                 FoodstuffId = Guid("241505a7-c6d7-4a7b-a913-aad0389c4606") // Tomatoes
             };
             {
-                Value = None
-                Unit = None
+                Value = Some 3.0
+                Unit = Some "pieces"
                 FoodstuffId = Guid("80a641dd-f9a3-4484-ba6e-466ceda111f1") // Yogurt
             };
             {
-                Value = None
-                Unit = None
+                Value = Some 3.0
+                Unit = Some "pound"
                 FoodstuffId = Guid("04c7dad3-657b-4fb6-8df9-a4cc3fb30408") // Potato
             };
             {
-                Value = None
-                Unit = None
+                Value = Some 3.0
+                Unit = Some "pieces"
                 FoodstuffId = Guid("27b43955-3361-48a1-b16f-9d339c808b20") // Bell peppers
             }
         ]
@@ -386,15 +396,12 @@ let main argv =
     // - not really precise matches, overall worse recommendations
     //
     // Both methods failed on large basket.
+    // user has to pick recipes one-by-one, we can subtract the chosen recipe from the shopping list, but our algorithms are not designed
+    // for proposing multiple complementary recipes at once.
     
     // TODO:
-    // - Inverse index implementation ? (Faster)
-    // - SVD ?? changing the basis from foodstuff to foodstuff groups which can be substituted (red onion, vs white onion),
+    // - 
+    // - (Maybe, probably not now)SVD ?? changing the basis from foodstuff to foodstuff groups which can be substituted (red onion, vs white onion),
     //     problem is that we have to decide this on binary basis, but only other solution is 2vec probably
-    // - add a case fitting for single 2 recipes, together (merge 2 cases to 1)
-    // - add improved structural algorithm
-    // - add simple intersections (Jaccard similarity for example for comparison)
-    //    - similarity should be a problem for recipes with same intersection (no notion of difference or relevance of other ingredients)
-    //    - also similarity has no notion of amounts
     
     0 // return an integer exit code

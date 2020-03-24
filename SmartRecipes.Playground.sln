@@ -1,6 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "SmartRecipes.Playground", "SmartRecipes.Playground\SmartRecipes.Playground.fsproj", "{00544D2B-EDEA-4B13-A3A3-8E87C9F260B2}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "SmartRecipes.ResultEvaluator", "SmartRecipes.ResultEvaluator\SmartRecipes.ResultEvaluator.fsproj", "{1DE5D9A2-508F-4F35-A48D-47D873F87B52}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -12,5 +15,9 @@ Global
 		{00544D2B-EDEA-4B13-A3A3-8E87C9F260B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{00544D2B-EDEA-4B13-A3A3-8E87C9F260B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{00544D2B-EDEA-4B13-A3A3-8E87C9F260B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1DE5D9A2-508F-4F35-A48D-47D873F87B52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DE5D9A2-508F-4F35-A48D-47D873F87B52}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DE5D9A2-508F-4F35-A48D-47D873F87B52}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DE5D9A2-508F-4F35-A48D-47D873F87B52}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
