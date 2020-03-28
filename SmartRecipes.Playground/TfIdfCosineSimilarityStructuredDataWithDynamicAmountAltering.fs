@@ -24,9 +24,9 @@ let transformInput (recipes: Recipe list) (foodstuffAmounts: FoodstuffAmount lis
     
 let recommend recipes foodstuffAmounts step n =
     let rec recommendRecursive allRecommendations foodstuffAmounts k =
+        let recommendableRecipes = List.except allRecommendations recipes
         let recommendations =
-            TfIdfCosineSimilarityStructuredData.recommend recipes foodstuffAmounts
-            |> Seq.where (fun r -> not <| List.contains r allRecommendations)
+            TfIdfCosineSimilarityStructuredData.recommend recommendableRecipes foodstuffAmounts
             |> Seq.take k
             |> Seq.append allRecommendations
             |> Seq.toList

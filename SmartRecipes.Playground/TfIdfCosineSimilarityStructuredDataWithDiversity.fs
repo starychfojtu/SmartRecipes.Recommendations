@@ -67,7 +67,7 @@ let rec getRecommendations lambda results candidates n =
                 else getRecommendations lambda newResults (List.except [nextBest] candidates) n
 
 let recommend recipes foodstuffAmounts n =
-    let lambda = 0.8 // accuracy vs diversity ratio (the higher the better for accuracy)
+    let lambda = 0.5 // accuracy vs diversity ratio (the higher the better for accuracy)
     let statistics = computeStatistics recipes
     let inputVector = vectorize statistics foodstuffAmounts
     

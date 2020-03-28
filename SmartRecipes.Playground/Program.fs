@@ -34,13 +34,13 @@ let showRecommendations recipes input1 input2 input3 =
         printfn "Recipe: %s; Count: %i <br>" recipe count
     printfn ""
     
-    printfn "<div>"
-    printfn "<div style=\"float: left;\">"
-    printfn "--------------------------- <br>"
-    printfn "<h2>Jaccard similarity</h2><br>"
-    printfn "--------------------------- <br>"
-    printRecipes (fun i -> List.exists (fun id -> id = i.Amount.FoodstuffId) input1) firstMethodRecommendations
-    printfn "</div>"
+//    printfn "<div>"
+//    printfn "<div style=\"float: left;\">"
+//    printfn "--------------------------- <br>"
+//    printfn "<h2>Jaccard similarity</h2><br>"
+//    printfn "--------------------------- <br>"
+//    printRecipes (fun i -> List.exists (fun id -> id = i.Amount.FoodstuffId) input1) firstMethodRecommendations
+//    printfn "</div>"
     
     printfn "<div>"
     printfn "<div style=\"float: left;\">"
@@ -50,13 +50,13 @@ let showRecommendations recipes input1 input2 input3 =
     printRecipes (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) input2) secondMethodRecommendations
     printfn "</div>"
     
-    printfn "<div style=\"float: left;\">"
-    printfn "--------------------------- <br>"
-    printfn "<h2>TF-IDF with text data</h2><br>"
-    printfn "--------------------------- <br>"
-    printRecipes (fun i -> List.exists (fun (t: string) -> i.DisplayLine.ToLowerInvariant().Contains(t)) input3) thirdMethodRecommendations
-    printfn "<br>"
-    printfn "</div>"
+//    printfn "<div style=\"float: left;\">"
+//    printfn "--------------------------- <br>"
+//    printfn "<h2>TF-IDF with text data</h2><br>"
+//    printfn "--------------------------- <br>"
+//    printRecipes (fun i -> List.exists (fun (t: string) -> i.DisplayLine.ToLowerInvariant().Contains(t)) input3) thirdMethodRecommendations
+//    printfn "<br>"
+//    printfn "</div>"
     
     printfn "<div>"
     printfn "<div style=\"float: left;\">"
