@@ -20,8 +20,9 @@ let showRecommendations recipes input1 input2 input3 =
     let secondMethodRecommendations = TfIdfCosineSimilarityStructuredData.recommend recipes input2 |> Seq.take 10 |> Seq.toList
     let thirdMethodRecommendations = TfIdfCosineSimilarityTextData.recommend recipes input3 |> Seq.take 10 |> Seq.toList
     let fourthMethodRecommendations = TfIdfCosineSimilarityStructuredDataWithDynamicAmountAltering.recommend recipes input2 3 10
+    let fifthMethodRecommendations = TfIdfCosineSimilarityStructuredDataWithDiversity.recommend recipes input2 10
     
-    let allRecipes = List.concat [ firstMethodRecommendations; secondMethodRecommendations; thirdMethodRecommendations; fourthMethodRecommendations ]
+    let allRecipes = List.concat [ firstMethodRecommendations; secondMethodRecommendations; thirdMethodRecommendations; fourthMethodRecommendations; fifthMethodRecommendations ]
     let counts =
         allRecipes
         |> List.groupBy (fun r -> r.Name)
@@ -63,6 +64,14 @@ let showRecommendations recipes input1 input2 input3 =
     printfn "<h2>TF-IDF with structured data (Iterative)</h2><br>"
     printfn "--------------------------- <br>"
     printRecipes (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) input2) fourthMethodRecommendations
+    printfn "</div>"
+    
+    printfn "<div>"
+    printfn "<div style=\"float: left;\">"
+    printfn "--------------------------- <br>"
+    printfn "<h2>TF-IDF with structured data (MMR)</h2><br>"
+    printfn "--------------------------- <br>"
+    printRecipes (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) input2) fifthMethodRecommendations
     printfn "</div>"
     
     printfn "</div>"

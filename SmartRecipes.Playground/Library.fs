@@ -26,3 +26,5 @@ let dotProduct v1 v2 =
     
 let cosineSimilarity v1 v2 =
     (dotProduct v1 v2) / ((magnitude v1) * (magnitude v2))
+    
+type Vector = Map<Guid, float>

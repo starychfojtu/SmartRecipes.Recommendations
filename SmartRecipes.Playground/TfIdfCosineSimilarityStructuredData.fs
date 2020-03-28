@@ -38,8 +38,6 @@ let tfIdf statistics foodstuffAmount =
     let documentFrequency = Map.find foodstuffAmount.FoodstuffId statistics.FoodstuffFrequencies
     foodstuffAmount.FoodstuffId, Math.Log10(statistics.NumberOfRecipes / documentFrequency) * (termFrequency foodstuffAmount)
     
-type Vector = Map<Guid, float>
-
 let vectorize statistics foodstuffAmounts: Vector =
     List.map (tfIdf statistics) foodstuffAmounts |> Map.ofList
     
