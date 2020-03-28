@@ -22,17 +22,18 @@ let transformInput (recipes: Recipe list) (foodstuffAmounts: FoodstuffAmount lis
             then a
             else { a with Value = a.Value |> Option.map ((*) 2.0) })
     
-let recommend recipes foodstuffAmounts k n =
+let recommend recipes foodstuffAmounts step n =
     let rec recommendRecursive allRecommendations foodstuffAmounts k =
         let recommendations =
-            TfIdfCosineSimilarityStructuredData.recommend recipes foodstuffAmounts (10 * n)
-            |> List.where (fun r -> not <| List.contains r allRecommendations)
-            |> List.take k
-            |> List.append allRecommendations
+            TfIdfCosineSimilarityStructuredData.recommend recipes foodstuffAmounts
+            |> Seq.where (fun r -> not <| List.contains r allRecommendations)
+            |> Seq.take k
+            |> Seq.append allRecommendations
+            |> Seq.toList
             
         let enoughRecipesRecommended = List.length recommendations >= n
         if enoughRecipesRecommended
             then recommendations
             else recommendRecursive recommendations (transformInput recommendations foodstuffAmounts) (n - k)
             
-    recommendRecursive [] foodstuffAmounts k
+    recommendRecursive [] foodstuffAmounts step

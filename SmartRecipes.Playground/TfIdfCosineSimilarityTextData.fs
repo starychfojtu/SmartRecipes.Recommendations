@@ -73,15 +73,14 @@ let computeStatistics (recipes: Recipe list) =
         
     { NumberOfRecipes = float recipeCount; TermFrequencies = termFrequencies }
     
-let recommend recipes inputs n =
+let recommend recipes inputs =
     let statistics = computeStatistics recipes
     
     let inputVector = vectorize statistics (inputs |> List.map normalizeTerm)
     let recommendations = 
         recipes
-        |> List.map (fun r -> let vector = r.Ingredients |> List.collect ingredientToWords |> vectorize statistics in (r,  vector, cosineSimilarity inputVector vector))
-        |> List.sortByDescending (fun (_, _, sim) -> sim)
-        |> List.take n
-        |> List.map (fun (r, _, _) -> r)
+        |> Seq.map (fun r -> let vector = r.Ingredients |> List.collect ingredientToWords |> vectorize statistics in (r,  vector, cosineSimilarity inputVector vector))
+        |> Seq.sortByDescending (fun (_, _, sim) -> sim)
+        |> Seq.map (fun (r, _, _) -> r)
         
     recommendations

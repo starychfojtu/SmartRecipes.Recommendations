@@ -57,15 +57,14 @@ let computeStatistics (recipes: Recipe list) =
 let vectorizeRecipe statistics r =
     r.Ingredients |> List.map (fun i -> i.Amount) |> vectorize statistics
     
-let recommend recipes foodstuffAmounts n =
+let recommend recipes foodstuffAmounts =
     let statistics = computeStatistics recipes
     
     let inputVector = vectorize statistics foodstuffAmounts
     let recipesToRecommend = 
         recipes
-        |> List.map (fun r -> (r, vectorizeRecipe statistics r |> cosineSimilarity inputVector))
-        |> List.sortByDescending second
-        |> List.take n
-        |> List.map first
+        |> Seq.map (fun r -> (r, vectorizeRecipe statistics r |> cosineSimilarity inputVector))
+        |> Seq.sortByDescending second
+        |> Seq.map first
         
     recipesToRecommend

@@ -17,7 +17,12 @@ open SmartRecipes.Playground.Model
 //            let iRecipe = recipesAndVectors.[i]
 //            let jRecipe = recipesAndVectors.[j]
 //            printfn "%d (%s) <-> %d (%s): %f" i iRecipe.Name j jRecipe.Name (sim iRecipe jRecipe)
+/// Second more dynamic method to use is MRR (maximalMarginalRelevance), where we also need to tune a constant, although a very different one.
+/// There we only tune how much diversity we want, which in the end, can be tuned by the user himself.
 
-let recommend recipes foodstuffAmounts n =
-    TfIdfCosineSimilarityStructuredData.recommend recipes foodstuffAmounts n
+
+let maximalMarginalRelevance = ()
+
+let recommend recipes foodstuffAmounts =
+    TfIdfCosineSimilarityStructuredData.recommend recipes foodstuffAmounts
             

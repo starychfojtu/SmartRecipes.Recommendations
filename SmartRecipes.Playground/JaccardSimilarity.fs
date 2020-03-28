@@ -13,13 +13,12 @@ let private jaccardDistance a b =
     let unionCount = Set.union a b |> Set.count |> float
     intersectionCount / unionCount
     
-let recommend recipes inputs n =
+let recommend recipes inputs =
     let inputSet = Set.ofList inputs
     let recommendations = 
         recipes
-        |> List.map (fun r -> (r, r.Ingredients |> List.map (fun i -> i.Amount.FoodstuffId) |> Set.ofList |> jaccardDistance inputSet))
-        |> List.sortByDescending second
-        |> List.take n
-        |> List.map first
+        |> Seq.map (fun r -> (r, r.Ingredients |> List.map (fun i -> i.Amount.FoodstuffId) |> Set.ofList |> jaccardDistance inputSet))
+        |> Seq.sortByDescending second
+        |> Seq.map first
         
     recommendations

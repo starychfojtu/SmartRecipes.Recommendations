@@ -16,9 +16,9 @@ let printRecipes doesIngredientMatch recipes =
     
     
 let showRecommendations recipes input1 input2 input3 =
-    let firstMethodRecommendations = JaccardSimilarity.recommend recipes input1 10
-    let secondMethodRecommendations = TfIdfCosineSimilarityStructuredData.recommend recipes input2 10
-    let thirdMethodRecommendations = TfIdfCosineSimilarityTextData.recommend recipes input3 10
+    let firstMethodRecommendations = JaccardSimilarity.recommend recipes input1 |> Seq.take 10 |> Seq.toList
+    let secondMethodRecommendations = TfIdfCosineSimilarityStructuredData.recommend recipes input2 |> Seq.take 10 |> Seq.toList
+    let thirdMethodRecommendations = TfIdfCosineSimilarityTextData.recommend recipes input3 |> Seq.take 10 |> Seq.toList
     let fourthMethodRecommendations = TfIdfCosineSimilarityStructuredDataWithDynamicAmountAltering.recommend recipes input2 3 10
     
     let allRecipes = List.concat [ firstMethodRecommendations; secondMethodRecommendations; thirdMethodRecommendations; fourthMethodRecommendations ]
