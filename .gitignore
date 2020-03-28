@@ -1,3 +1,6 @@
 SmartRecipes.Playground/bin/*
 SmartRecipes.Playground/obj/*
 .idea/*
+.vs/*
+SmartRecipes.ResultEvaluator/bin/*
+SmartRecipes.ResultEvaluator/obj/*

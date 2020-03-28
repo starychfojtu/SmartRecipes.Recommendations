@@ -1,23 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
-    <PropertyGroup>
-        <OutputType>Exe</OutputType>
-        <TargetFramework>netcoreapp3.0</TargetFramework>
-    </PropertyGroup>
-
-    <ItemGroup>
-        <Compile Include="Library.fs" />
-        <Compile Include="Model.fs" />
-        <Compile Include="DataStore.fs" />
-        <Compile Include="JaccardSimilarity.fs" />
-        <Compile Include="TfIdfCosineSimilarityStructuredData.fs" />
-        <Compile Include="TfIdfCosineSimilarityStructuredDataWithDynamicAmountAltering.fs" />
-        <Compile Include="TfIdfCosineSimilarityTextData.fs" />
-        <Compile Include="Program.fs" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <PackageReference Include="Npgsql.FSharp" Version="1.19.0" />
-    </ItemGroup>
-
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Library.fs" />
+    <Compile Include="Model.fs" />
+    <Compile Include="DataStore.fs" />
+    <Compile Include="JaccardSimilarity.fs" />
+    <Compile Include="TfIdfCosineSimilarityStructuredData.fs" />
+    <Compile Include="TfIdfCosineSimilarityStructuredDataWithDynamicAmountAltering.fs" />
+    <Compile Include="TfIdfCosineSimilarityStructuredDataWithDiversity.fs" />
+    <Compile Include="TfIdfCosineSimilarityTextData.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Npgsql.FSharp" Version="1.19.0" />
+  </ItemGroup>
 </Project>

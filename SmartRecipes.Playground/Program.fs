@@ -3,8 +3,6 @@ open SmartRecipes.Playground
 open SmartRecipes.Playground.Model
 open System
 
-// Learn more about F# at http://fsharp.org
-
 let printRecipe doesIngredientMatch (recipe: Recipe) =
     printfn "<h3>%s</h3><br>" recipe.Name
     printfn "Ingredients: <br>"

@@ -41,18 +41,27 @@ let main argv =
 
     let fileLocation = argv.[0]
     let lines = readLines fileLocation
-    for line in lines do
-        let parts = line.Split(',')
-        let foodstuff = Map.find (Guid(parts.[0])) foodstuffByIds
-        let vector = parts.[1]
-        let closestFoodstuff = Map.find (Guid(parts.[2])) foodstuffByIds
 
-        let matches =
-            Map.find foodstuff.Id recipeIdsByFoodstuffId
-            |> List.map (fun rId -> Map.find rId foodstuffIdsByRecipeId)
-            |> List.filter (fun fIds -> Set.contains closestFoodstuff.Id fIds)
-            |> List.length
+    let totalMatches =
+        lines
+        |> Seq.map (fun line ->
+            let parts = line.Split(',')
+            let foodstuff = Map.find (Guid(parts.[0])) foodstuffByIds
+            let vector = parts.[1]
+            let closestFoodstuff = Map.find (Guid(parts.[2])) foodstuffByIds
 
-        printfn "%d %s -> %s" matches foodstuff.Name closestFoodstuff.Name
+            let matches =
+                Map.tryFind foodstuff.Id recipeIdsByFoodstuffId
+                |> Option.defaultValue List.empty
+                |> List.map (fun rId -> Map.find rId foodstuffIdsByRecipeId)
+                |> List.filter (fun fIds -> Set.contains closestFoodstuff.Id fIds)
+                |> List.length
+
+            printfn "%d %s -> %s" matches foodstuff.Name closestFoodstuff.Name
+
+            matches)
+        |> Seq.sum
+
+    printfn "Summed matches %d" totalMatches
 
     0
