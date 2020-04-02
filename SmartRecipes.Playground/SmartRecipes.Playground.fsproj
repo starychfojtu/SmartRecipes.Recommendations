@@ -12,6 +12,7 @@
     <Compile Include="TfIdfCosineSimilarityStructuredDataWithDynamicAmountAltering.fs" />
     <Compile Include="TfIdfCosineSimilarityStructuredDataWithDiversity.fs" />
     <Compile Include="TfIdfCosineSimilarityTextData.fs" />
+    <Compile Include="FoodToVector.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
