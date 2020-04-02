@@ -1,5 +1,6 @@
 ﻿open SmartRecipes.Playground.Library
 open SmartRecipes.Playground
+open SmartRecipes.Playground.FoodToVector
 open SmartRecipes.Playground.Model
 open System
 
@@ -15,14 +16,23 @@ let printRecipes doesIngredientMatch recipes =
         printRecipe doesIngredientMatch recipe
     
     
-let showRecommendations recipes input1 input2 input3 =
+let showRecommendations recipes food2vecData input1 input2 input3 =
     let firstMethodRecommendations = JaccardSimilarity.recommend recipes input1 |> Seq.take 10 |> Seq.toList
     let secondMethodRecommendations = TfIdfCosineSimilarityStructuredData.recommend recipes input2 |> Seq.take 10 |> Seq.toList
     let thirdMethodRecommendations = TfIdfCosineSimilarityTextData.recommend recipes input3 |> Seq.take 10 |> Seq.toList
     let fourthMethodRecommendations = TfIdfCosineSimilarityStructuredDataWithDynamicAmountAltering.recommend recipes input2 3 10
     let fifthMethodRecommendations = TfIdfCosineSimilarityStructuredDataWithDiversity.recommend recipes input2 10
+    let sixthMethodRecommendations = FoodToVector.recommend food2vecData recipes input1 |> Seq.take 10 |> Seq.toList
     
-    let allRecipes = List.concat [ firstMethodRecommendations; secondMethodRecommendations; thirdMethodRecommendations; fourthMethodRecommendations; fifthMethodRecommendations ]
+    let allRecipes = List.concat [
+        firstMethodRecommendations;
+        secondMethodRecommendations;
+        thirdMethodRecommendations;
+        fourthMethodRecommendations;
+        fifthMethodRecommendations;
+        sixthMethodRecommendations
+    ]
+    
     let counts =
         allRecipes
         |> List.groupBy (fun r -> r.Name)
@@ -74,6 +84,14 @@ let showRecommendations recipes input1 input2 input3 =
     printRecipes (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) input2) fifthMethodRecommendations
     printfn "</div>"
     
+    printfn "<div>"
+    printfn "<div style=\"float: left;\">"
+    printfn "--------------------------- <br>"
+    printfn "<h2>Food2Vec</h2><br>"
+    printfn "--------------------------- <br>"
+    printRecipes (fun i -> List.exists (fun id -> id = i.Amount.FoodstuffId) input1) sixthMethodRecommendations
+    printfn "</div>"
+    
     printfn "</div>"
     printfn "<div style=\"clear: both;\"></div>"
 
@@ -88,10 +106,11 @@ let main argv =
     printHeader ()
     
     let recipes = DataStore.getRecipes ()
+    let food2vecData = Data.loadFoodstuffVectors "~/Projects/word2vec/vectors.txt"
     let run introText input1 input2 input3 =
         printfn "-------------RUN-START-------------- <br>"
         printfn "<h1>%s</h1><br>" introText
-        showRecommendations recipes input1 input2 input3
+        showRecommendations recipes food2vecData input1 input2 input3
         printfn "-------------RUN-END---------------- <br>"
     
     // INPUT: small number of ingredients
