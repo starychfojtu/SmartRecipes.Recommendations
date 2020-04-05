@@ -17,15 +17,32 @@ let dotProduct v1 v2 =
     
 let cosineSimilarity v1 v2 =
     (dotProduct v1 v2) / ((magnitude v1) * (magnitude v2))
+    
+type WeightedVector = {
+    Vector: float[]
+    Weight: float
+}
 
-let mean a b =
-    Array.zip a b
-    |> Array.map (fun (a, b) -> (a + b) / 2.0)
+let mean (vectors: WeightedVector list) =
+    let count = List.length vectors |> float
+    let dimension = Array.length vectors.[0].Vector
+    let result: float[] = Array.zeroCreate dimension
+    for d in 0..dimension-1 do
+        let sum = vectors |> List.map (fun v -> v.Vector.[d] * v.Weight) |> List.sum
+        let mean = sum / count
+        result.[d] <- mean
+        
+    result
 
-let vectorize foodstuffVectors foodstuffIds =
-    foodstuffIds
-    |> List.map (fun id -> Map.find id foodstuffVectors)
-    |> List.reduce mean
+type WeightedFoodstuff = {
+    FoodstuffId: Guid
+    Weight: float
+}
+
+let vectorize foodstuffVectors weightedFoodstuffs =
+    weightedFoodstuffs
+    |> List.map (fun f -> { Vector = Map.find f.FoodstuffId foodstuffVectors; Weight = f.Weight })
+    |> mean
     
 module Data =
     let readLines (filePath : string) =
@@ -54,13 +71,15 @@ module Data =
          |> Seq.map parseLine
          |> Map.ofSeq
 
-let recommend foodstuffVectors recipes foodstuffIds =
-    let inputVector = vectorize foodstuffVectors foodstuffIds
+let recommend foodstuffVectors recipes foodstuffAmounts =
+    let amountsToWeightedFoodstuffs = List.map (fun (a: FoodstuffAmount) -> { FoodstuffId = a.FoodstuffId; Weight = TfIdfCosineSimilarityStructuredData.termFrequency a })
+    let weightedFoodstuffs = amountsToWeightedFoodstuffs foodstuffAmounts
+    let inputVector = vectorize foodstuffVectors weightedFoodstuffs
     
     recipes
     |> List.map (fun (r: Recipe) ->
-        let foodstuffIds = r.Ingredients |> List.map (fun i -> i.Amount.FoodstuffId)
-        let vector = vectorize foodstuffVectors foodstuffIds
+        let foodstuffAmounts = r.Ingredients |> List.map (fun i -> i.Amount)
+        let vector = vectorize foodstuffVectors (amountsToWeightedFoodstuffs foodstuffAmounts)
         let distance = cosineSimilarity vector inputVector
         (r, vector, distance)
     )

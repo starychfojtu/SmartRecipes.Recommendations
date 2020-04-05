@@ -23,6 +23,7 @@ let printRecipes doesIngredientMatch recipes =
     for recipe in recipes do
         printRecipe doesIngredientMatch recipe
     
+let toInfoLessAmounts = List.map (fun (id: Guid) -> { FoodstuffId = id; Unit = None; Value = None })
     
 let showRecommendations recipes food2vecData input1 input2 input3 =
     let (firstMethodRecommendations, firstMs) = profilePerformance (fun () -> JaccardSimilarity.recommend recipes input1 |> Seq.take 10 |> Seq.toList)
@@ -30,8 +31,8 @@ let showRecommendations recipes food2vecData input1 input2 input3 =
     let (thirdMethodRecommendations, thirdMs) = profilePerformance (fun () -> TfIdfCosineSimilarityTextData.recommend recipes input3 |> Seq.take 10 |> Seq.toList)
     let (fourthMethodRecommendations, fourthMs) = profilePerformance (fun () -> TfIdfCosineSimilarityStructuredDataWithDynamicAmountAltering.recommend recipes input2 3 10)
     let (fifthMethodRecommendations, fifthMs) = profilePerformance (fun () -> TfIdfCosineSimilarityStructuredDataWithDiversity.recommend recipes input2 10)
-    let (sixthMethodRecommendations, sixthMs) = profilePerformance (fun () -> FoodToVector.recommend food2vecData recipes input1 |> Seq.take 10 |> Seq.toList)
-    let (seventhMethodRecommendations, seventhMs) = profilePerformance (fun () -> FoodToVectorWeightedMean.recommend food2vecData recipes input1 |> Seq.take 10 |> Seq.toList)
+    let (sixthMethodRecommendations, sixthMs) = profilePerformance (fun () -> FoodToVector.recommend food2vecData recipes (toInfoLessAmounts input1) |> Seq.take 10 |> Seq.toList)
+    let (seventhMethodRecommendations, seventhMs) = profilePerformance (fun () -> FoodToVector.recommend food2vecData recipes input2 |> Seq.take 10 |> Seq.toList)
     
     let allRecipes = List.concat [
         firstMethodRecommendations;
@@ -86,7 +87,7 @@ let showRecommendations recipes food2vecData input1 input2 input3 =
     printfn "<div style=\"clear: both;\"></div>"
 
 let printHeader () =
-    printfn "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>SmartRecipes recommendations</title></head><body>"
+    printfn "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>SmartRecipes recommendations</title></head><body style=\"width: 5000px\">"
     
 let printFooter () =
     printfn "</body></html>"
