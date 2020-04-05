@@ -25,12 +25,12 @@ let printRecipes doesIngredientMatch recipes =
     
     
 let showRecommendations recipes food2vecData input1 input2 input3 =
-    let firstMethodRecommendations = profilePerformance (fun () -> JaccardSimilarity.recommend recipes input1 |> Seq.take 10 |> Seq.toList)
-    let secondMethodRecommendations = profilePerformance (fun () -> TfIdfCosineSimilarityStructuredData.recommend recipes input2 |> Seq.take 10 |> Seq.toList)
-    let thirdMethodRecommendations = profilePerformance (fun () -> TfIdfCosineSimilarityTextData.recommend recipes input3 |> Seq.take 10 |> Seq.toList)
-    let fourthMethodRecommendations = profilePerformance (fun () -> TfIdfCosineSimilarityStructuredDataWithDynamicAmountAltering.recommend recipes input2 3 10)
-    let fifthMethodRecommendations = profilePerformance (fun () -> TfIdfCosineSimilarityStructuredDataWithDiversity.recommend recipes input2 10)
-    let sixthMethodRecommendations = profilePerformance (fun () -> FoodToVector.recommend food2vecData recipes input1 |> Seq.take 10 |> Seq.toList)
+    let (firstMethodRecommendations, firstMs) = profilePerformance (fun () -> JaccardSimilarity.recommend recipes input1 |> Seq.take 10 |> Seq.toList)
+    let (secondMethodRecommendations, secondMs) = profilePerformance (fun () -> TfIdfCosineSimilarityStructuredData.recommend recipes input2 |> Seq.take 10 |> Seq.toList)
+    let (thirdMethodRecommendations, thirdMs) = profilePerformance (fun () -> TfIdfCosineSimilarityTextData.recommend recipes input3 |> Seq.take 10 |> Seq.toList)
+    let (fourthMethodRecommendations, fourthMs) = profilePerformance (fun () -> TfIdfCosineSimilarityStructuredDataWithDynamicAmountAltering.recommend recipes input2 3 10)
+    let (fifthMethodRecommendations, fifthMs) = profilePerformance (fun () -> TfIdfCosineSimilarityStructuredDataWithDiversity.recommend recipes input2 10)
+    let (sixthMethodRecommendations, sixthMs) = profilePerformance (fun () -> FoodToVector.recommend food2vecData recipes input1 |> Seq.take 10 |> Seq.toList)
     
     let allRecipes = List.concat [
         firstMethodRecommendations;
@@ -46,40 +46,47 @@ let showRecommendations recipes food2vecData input1 input2 input3 =
         |> List.groupBy (fun r -> r.Name)
         |> List.map (fun (name, recipes) -> (name, Seq.length recipes))
         |> List.sortByDescending second
+        
+    let printPerformance p =
+        printfn "<h3>%d ms</h3><br>" p
     
     printfn "Overall statistics <br>"
     for (recipe, count) in counts do
         printfn "Recipe: %s; Count: %i <br>" recipe count
     printfn ""
     
-//    printfn "<div>"
-//    printfn "<div style=\"float: left;\">"
-//    printfn "--------------------------- <br>"
-//    printfn "<h2>Jaccard similarity</h2><br>"
-//    printfn "--------------------------- <br>"
-//    printRecipes (fun i -> List.exists (fun id -> id = i.Amount.FoodstuffId) input1 |> Binary) firstMethodRecommendations
-//    printfn "</div>"
+    printfn "<div>"
+    printfn "<div style=\"float: left;\">"
+    printfn "--------------------------- <br>"
+    printfn "<h2>Jaccard similarity</h2><br>"
+    printPerformance firstMs 
+    printfn "--------------------------- <br>"
+    printRecipes (fun i -> List.exists (fun id -> id = i.Amount.FoodstuffId) input1 |> Binary) firstMethodRecommendations
+    printfn "</div>"
     
-//    printfn "<div>"
-//    printfn "<div style=\"float: left;\">"
-//    printfn "--------------------------- <br>"
-//    printfn "<h2>TF-IDF with structured data</h2><br>"
-//    printfn "--------------------------- <br>"
-//    printRecipes (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) input2 |> Binary) secondMethodRecommendations
-//    printfn "</div>"
+    printfn "<div>"
+    printfn "<div style=\"float: left;\">"
+    printfn "--------------------------- <br>"
+    printfn "<h2>TF-IDF with structured data</h2><br>"
+    printPerformance secondMs 
+    printfn "--------------------------- <br>"
+    printRecipes (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) input2 |> Binary) secondMethodRecommendations
+    printfn "</div>"
     
-//    printfn "<div style=\"float: left;\">"
-//    printfn "--------------------------- <br>"
-//    printfn "<h2>TF-IDF with text data</h2><br>"
-//    printfn "--------------------------- <br>"
-//    printRecipes (fun i -> List.exists (fun (t: string) -> i.DisplayLine.ToLowerInvariant().Contains(t)) input3 |> Binary) thirdMethodRecommendations
-//    printfn "<br>"
-//    printfn "</div>"
+    printfn "<div style=\"float: left;\">"
+    printfn "--------------------------- <br>"
+    printfn "<h2>TF-IDF with text data</h2><br>"
+    printPerformance thirdMs 
+    printfn "--------------------------- <br>"
+    printRecipes (fun i -> List.exists (fun (t: string) -> i.DisplayLine.ToLowerInvariant().Contains(t)) input3 |> Binary) thirdMethodRecommendations
+    printfn "<br>"
+    printfn "</div>"
     
     printfn "<div>"
     printfn "<div style=\"float: left;\">"
     printfn "--------------------------- <br>"
     printfn "<h2>TF-IDF with structured data (Iterative)</h2><br>"
+    printPerformance fourthMs 
     printfn "--------------------------- <br>"
     printRecipes (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) input2 |> Binary) fourthMethodRecommendations
     printfn "</div>"
@@ -88,6 +95,7 @@ let showRecommendations recipes food2vecData input1 input2 input3 =
     printfn "<div style=\"float: left;\">"
     printfn "--------------------------- <br>"
     printfn "<h2>TF-IDF with structured data (MMR)</h2><br>"
+    printPerformance fifthMs
     printfn "--------------------------- <br>"
     printRecipes (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) input2 |> Binary) fifthMethodRecommendations
     printfn "</div>"
@@ -103,6 +111,7 @@ let showRecommendations recipes food2vecData input1 input2 input3 =
     printfn "<div style=\"float: left;\">"
     printfn "--------------------------- <br>"
     printfn "<h2>Food2Vec</h2><br>"
+    printPerformance sixthMs
     printfn "--------------------------- <br>"
     printRecipes ((findMaxSimilarity input1) >> Distance) sixthMethodRecommendations
     printfn "</div>"

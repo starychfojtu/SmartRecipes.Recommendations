@@ -34,5 +34,4 @@ let profilePerformance f =
     let sw = Stopwatch.StartNew ()
     let result = f ()
     sw.Stop()
-    printfn "Function returned in %d" sw.ElapsedMilliseconds
-    result
+    (result, sw.ElapsedMilliseconds)
