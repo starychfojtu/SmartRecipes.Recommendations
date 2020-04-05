@@ -25,12 +25,12 @@ let printRecipes doesIngredientMatch recipes =
     
     
 let showRecommendations recipes food2vecData input1 input2 input3 =
-    let firstMethodRecommendations = JaccardSimilarity.recommend recipes input1 |> Seq.take 10 |> Seq.toList
-    let secondMethodRecommendations = TfIdfCosineSimilarityStructuredData.recommend recipes input2 |> Seq.take 10 |> Seq.toList
-    let thirdMethodRecommendations = TfIdfCosineSimilarityTextData.recommend recipes input3 |> Seq.take 10 |> Seq.toList
-    let fourthMethodRecommendations = TfIdfCosineSimilarityStructuredDataWithDynamicAmountAltering.recommend recipes input2 3 10
-    let fifthMethodRecommendations = TfIdfCosineSimilarityStructuredDataWithDiversity.recommend recipes input2 10
-    let sixthMethodRecommendations = FoodToVector.recommend food2vecData recipes input1 |> Seq.take 10 |> Seq.toList
+    let firstMethodRecommendations = profilePerformance (fun () -> JaccardSimilarity.recommend recipes input1 |> Seq.take 10 |> Seq.toList)
+    let secondMethodRecommendations = profilePerformance (fun () -> TfIdfCosineSimilarityStructuredData.recommend recipes input2 |> Seq.take 10 |> Seq.toList)
+    let thirdMethodRecommendations = profilePerformance (fun () -> TfIdfCosineSimilarityTextData.recommend recipes input3 |> Seq.take 10 |> Seq.toList)
+    let fourthMethodRecommendations = profilePerformance (fun () -> TfIdfCosineSimilarityStructuredDataWithDynamicAmountAltering.recommend recipes input2 3 10)
+    let fifthMethodRecommendations = profilePerformance (fun () -> TfIdfCosineSimilarityStructuredDataWithDiversity.recommend recipes input2 10)
+    let sixthMethodRecommendations = profilePerformance (fun () -> FoodToVector.recommend food2vecData recipes input1 |> Seq.take 10 |> Seq.toList)
     
     let allRecipes = List.concat [
         firstMethodRecommendations;
