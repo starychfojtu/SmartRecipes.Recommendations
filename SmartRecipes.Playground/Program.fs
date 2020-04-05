@@ -117,13 +117,13 @@ let main argv =
         ]
         [
             {
-                Value = Some 1.0
+                Value = Some 2.0
                 Unit = Some "pound"
                 FoodstuffId = Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241") // Beef
             };
             {
-                Value = None
-                Unit = None
+                Value = Some 4.0
+                Unit = Some "pieces"
                 FoodstuffId = Guid("27b43955-3361-48a1-b16f-9d339c808b20") // Bell peppers
             }
         ]

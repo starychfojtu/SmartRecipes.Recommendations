@@ -27,9 +27,9 @@ type DataSetStatistics = {
 let termFrequency foodstuffAmount =
     let amount = 
         match foodstuffAmount.Unit with
-        | Some "cup" -> foodstuffAmount.Value
-        | Some "pieces" -> foodstuffAmount.Value
-        | Some "pound" -> foodstuffAmount.Value
+        | Some "cup" -> foodstuffAmount.Value |> Option.map ((*) 2.0)
+        | Some "pieces" -> foodstuffAmount.Value |> Option.map ((*) 2.0)
+        | Some "pound" -> foodstuffAmount.Value |> Option.map ((*) 5.0)
         | Some _ -> None
         | None -> None
         
