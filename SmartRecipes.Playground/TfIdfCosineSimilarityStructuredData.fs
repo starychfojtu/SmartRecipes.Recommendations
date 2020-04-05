@@ -14,6 +14,7 @@ open Library
 type DataSetStatistics = {
     NumberOfRecipes: float
     FoodstuffFrequencies: Map<Guid, float>
+    InverseIndex: Map<Guid, Recipe list>
 }
 
 // TODO: Notes in improvements
@@ -41,26 +42,44 @@ let tfIdf statistics foodstuffAmount =
 let vectorize statistics foodstuffAmounts: Vector =
     List.map (tfIdf statistics) foodstuffAmounts |> Map.ofList
     
+let getInverseIndex (recipes: Recipe list): Map<Guid, Recipe list> =
+    recipes
+    |> List.collect (fun r -> r.Ingredients |> List.map (fun i -> (i.Amount.FoodstuffId, r)))
+    |> List.groupBy (fun (foodstuffId, _) -> foodstuffId)
+    |> List.map (fun (foodstuffId, values) ->
+        let distinctRecipes =
+            values
+            |> List.map (fun (_, r) -> r)
+            |> List.distinctBy (fun r -> r.Id)
+        (foodstuffId, distinctRecipes))
+    |> Map.ofList
+    
 let computeStatistics (recipes: Recipe list) =
-    let recipeCount = List.length recipes
+    let recipeCount = List.length recipes |> float
+    let inverseIndex = getInverseIndex recipes
     let foodstuffFrequencies =
-        recipes
-        |> List.collect (fun r -> r.Ingredients)
-        |> List.groupBy (fun i -> i.Amount.FoodstuffId)
-        |> List.map (mapSecond (List.distinctBy (fun i -> i.RecipeId) >> List.length >> float))
-        |> Map.ofList
+        inverseIndex
+        |> Map.map (fun k v -> List.length v |> float)
         
-    { NumberOfRecipes = float recipeCount; FoodstuffFrequencies = foodstuffFrequencies }
+    {
+        NumberOfRecipes = recipeCount
+        FoodstuffFrequencies = foodstuffFrequencies
+        InverseIndex = inverseIndex
+    }
     
 let vectorizeRecipe statistics r =
     r.Ingredients |> List.map (fun i -> i.Amount) |> vectorize statistics
     
 let recommend recipes foodstuffAmounts =
     let statistics = computeStatistics recipes
-    
     let inputVector = vectorize statistics foodstuffAmounts
+    let relevantRecipes =
+        foodstuffAmounts
+        |> List.collect (fun a -> Map.find a.FoodstuffId statistics.InverseIndex)
+        |> List.distinctBy (fun r -> r.Id)
+
     let recipesToRecommend = 
-        recipes
+        relevantRecipes
         |> Seq.map (fun r -> (r, vectorizeRecipe statistics r |> cosineSimilarity inputVector))
         |> Seq.sortByDescending second
         |> Seq.map first
