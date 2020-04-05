@@ -4,11 +4,19 @@ open SmartRecipes.Playground.FoodToVector
 open SmartRecipes.Playground.Model
 open System
 
+type IngredientMatchResult =
+    | Binary of bool
+    | Distance of float
+    
 let printRecipe doesIngredientMatch (recipe: Recipe) =
     printfn "<h3>%s</h3><br>" recipe.Name
     printfn "Ingredients: <br>"
     for ingredient in recipe.Ingredients do
-        printfn "[%s] %s <br>" (if doesIngredientMatch ingredient then "X" else "") ingredient.DisplayLine
+        let matchResult =
+            match doesIngredientMatch ingredient with
+            | Binary b -> if b then "X" else ""
+            | Distance d -> d.ToString("0.00")
+        printfn "[%s] %s <br>" matchResult ingredient.DisplayLine
     printfn "<br>"
     
 let printRecipes doesIngredientMatch recipes =
@@ -49,22 +57,22 @@ let showRecommendations recipes food2vecData input1 input2 input3 =
 //    printfn "--------------------------- <br>"
 //    printfn "<h2>Jaccard similarity</h2><br>"
 //    printfn "--------------------------- <br>"
-//    printRecipes (fun i -> List.exists (fun id -> id = i.Amount.FoodstuffId) input1) firstMethodRecommendations
+//    printRecipes (fun i -> List.exists (fun id -> id = i.Amount.FoodstuffId) input1 |> Binary) firstMethodRecommendations
 //    printfn "</div>"
     
-    printfn "<div>"
-    printfn "<div style=\"float: left;\">"
-    printfn "--------------------------- <br>"
-    printfn "<h2>TF-IDF with structured data</h2><br>"
-    printfn "--------------------------- <br>"
-    printRecipes (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) input2) secondMethodRecommendations
-    printfn "</div>"
+//    printfn "<div>"
+//    printfn "<div style=\"float: left;\">"
+//    printfn "--------------------------- <br>"
+//    printfn "<h2>TF-IDF with structured data</h2><br>"
+//    printfn "--------------------------- <br>"
+//    printRecipes (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) input2 |> Binary) secondMethodRecommendations
+//    printfn "</div>"
     
 //    printfn "<div style=\"float: left;\">"
 //    printfn "--------------------------- <br>"
 //    printfn "<h2>TF-IDF with text data</h2><br>"
 //    printfn "--------------------------- <br>"
-//    printRecipes (fun i -> List.exists (fun (t: string) -> i.DisplayLine.ToLowerInvariant().Contains(t)) input3) thirdMethodRecommendations
+//    printRecipes (fun i -> List.exists (fun (t: string) -> i.DisplayLine.ToLowerInvariant().Contains(t)) input3 |> Binary) thirdMethodRecommendations
 //    printfn "<br>"
 //    printfn "</div>"
     
@@ -73,7 +81,7 @@ let showRecommendations recipes food2vecData input1 input2 input3 =
     printfn "--------------------------- <br>"
     printfn "<h2>TF-IDF with structured data (Iterative)</h2><br>"
     printfn "--------------------------- <br>"
-    printRecipes (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) input2) fourthMethodRecommendations
+    printRecipes (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) input2 |> Binary) fourthMethodRecommendations
     printfn "</div>"
     
     printfn "<div>"
@@ -81,15 +89,22 @@ let showRecommendations recipes food2vecData input1 input2 input3 =
     printfn "--------------------------- <br>"
     printfn "<h2>TF-IDF with structured data (MMR)</h2><br>"
     printfn "--------------------------- <br>"
-    printRecipes (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) input2) fifthMethodRecommendations
+    printRecipes (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) input2 |> Binary) fifthMethodRecommendations
     printfn "</div>"
+    
+    let findMaxSimilarity foodstuffIds ingredient =
+        let toVector fId = Map.find fId food2vecData
+        let ingredientVector = toVector ingredient.Amount.FoodstuffId
+        foodstuffIds
+            |> List.map (toVector >> (FoodToVector.cosineSimilarity ingredientVector))
+            |> List.max
     
     printfn "<div>"
     printfn "<div style=\"float: left;\">"
     printfn "--------------------------- <br>"
     printfn "<h2>Food2Vec</h2><br>"
     printfn "--------------------------- <br>"
-    printRecipes (fun i -> List.exists (fun id -> id = i.Amount.FoodstuffId) input1) sixthMethodRecommendations
+    printRecipes ((findMaxSimilarity input1) >> Distance) sixthMethodRecommendations
     printfn "</div>"
     
     printfn "</div>"
@@ -106,7 +121,7 @@ let main argv =
     printHeader ()
     
     let recipes = DataStore.getRecipes ()
-    let food2vecData = Data.loadFoodstuffVectors "~/Projects/word2vec/vectors.txt"
+    let food2vecData = Data.loadFoodstuffVectors "vectors.txt"
     let run introText input1 input2 input3 =
         printfn "-------------RUN-START-------------- <br>"
         printfn "<h1>%s</h1><br>" introText

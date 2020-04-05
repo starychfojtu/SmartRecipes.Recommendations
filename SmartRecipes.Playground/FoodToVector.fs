@@ -31,6 +31,8 @@ module Data =
     let readLines (filePath : string) =
         seq {
             use sr = new StreamReader(filePath)
+            sr.ReadLine() |> ignore // Skip header.
+            sr.ReadLine() |> ignore // Skip space token.
             while not sr.EndOfStream do
                 yield sr.ReadLine()
         }
@@ -41,6 +43,7 @@ module Data =
         let vector =
             parts
             |> Seq.skip 1
+            |> Seq.filter (fun s -> s <> "")
             |> Seq.map float
             |> Seq.toArray
             
@@ -51,6 +54,7 @@ module Data =
          |> Seq.map parseLine
          |> Map.ofSeq
 
+// TODO: weighted mean instead of just mean on input vectors.
 let recommend foodstuffVectors recipes foodstuffIds =
     let inputVector = vectorize foodstuffVectors foodstuffIds
     
