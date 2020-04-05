@@ -1,4 +1,4 @@
-module SmartRecipes.Playground.FoodToVector
+module SmartRecipes.Playground.FoodToVectorWeightedMean
 
 open System
 open System.IO
@@ -54,6 +54,7 @@ module Data =
          |> Seq.map parseLine
          |> Map.ofSeq
 
+// TODO: weighted mean instead of just mean on input vectors.
 let recommend foodstuffVectors recipes foodstuffIds =
     let inputVector = vectorize foodstuffVectors foodstuffIds
     

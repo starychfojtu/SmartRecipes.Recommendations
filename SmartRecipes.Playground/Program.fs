@@ -31,6 +31,7 @@ let showRecommendations recipes food2vecData input1 input2 input3 =
     let (fourthMethodRecommendations, fourthMs) = profilePerformance (fun () -> TfIdfCosineSimilarityStructuredDataWithDynamicAmountAltering.recommend recipes input2 3 10)
     let (fifthMethodRecommendations, fifthMs) = profilePerformance (fun () -> TfIdfCosineSimilarityStructuredDataWithDiversity.recommend recipes input2 10)
     let (sixthMethodRecommendations, sixthMs) = profilePerformance (fun () -> FoodToVector.recommend food2vecData recipes input1 |> Seq.take 10 |> Seq.toList)
+    let (seventhMethodRecommendations, seventhMs) = profilePerformance (fun () -> FoodToVectorWeightedMean.recommend food2vecData recipes input1 |> Seq.take 10 |> Seq.toList)
     
     let allRecipes = List.concat [
         firstMethodRecommendations;
@@ -38,7 +39,8 @@ let showRecommendations recipes food2vecData input1 input2 input3 =
         thirdMethodRecommendations;
         fourthMethodRecommendations;
         fifthMethodRecommendations;
-        sixthMethodRecommendations
+        sixthMethodRecommendations;
+        seventhMethodRecommendations
     ]
     
     let counts =
@@ -78,6 +80,7 @@ let showRecommendations recipes food2vecData input1 input2 input3 =
     printMethod "TF-IDF with structured data (Iterative)" fourthMethodRecommendations fourthMs (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) input2 |> Binary)
     printMethod "TF-IDF with structured data (MMR)" fifthMethodRecommendations fifthMs (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) input2 |> Binary)
     printMethod "Food2Vec (mean)" sixthMethodRecommendations sixthMs ((findMaxSimilarity input1) >> Distance)
+    printMethod "Food2Vec (weighted mean)" seventhMethodRecommendations seventhMs ((findMaxSimilarity input1) >> Distance)
     
     printfn "</div>"
     printfn "<div style=\"clear: both;\"></div>"
