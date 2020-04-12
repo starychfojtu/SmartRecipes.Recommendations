@@ -58,8 +58,7 @@ let computeStatistics (recipes: Recipe list) =
 let vectorizeRecipe statistics r =
     r.Ingredients |> List.map (fun i -> i.Amount) |> vectorize statistics
     
-let recommend recipes foodstuffAmounts =
-    let statistics = computeStatistics recipes
+let recommend statistics foodstuffAmounts =
     let inputVector = vectorize statistics foodstuffAmounts
     let relevantRecipes =
         foodstuffAmounts

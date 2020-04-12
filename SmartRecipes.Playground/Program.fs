@@ -26,14 +26,37 @@ let printRecipes doesIngredientMatch recipes =
 let toInfoLessAmounts = List.map (fun (id: Guid) -> { FoodstuffId = id; Unit = None; Value = None })
     
 let showRecommendations recipes food2vecData foodstuffAmounts foodstuffWords =
+    let statistics = TfIdfCosineSimilarityStructuredData.computeStatistics recipes
     let foodstuffIds = foodstuffAmounts |> List.map (fun a -> a.FoodstuffId)
-    let (firstMethodRecommendations, firstMs) = profilePerformance (fun () -> JaccardSimilarity.recommend recipes foodstuffIds |> Seq.take 10 |> Seq.toList)
-    let (secondMethodRecommendations, secondMs) = profilePerformance (fun () -> TfIdfCosineSimilarityStructuredData.recommend recipes foodstuffAmounts |> Seq.take 10 |> Seq.toList)
-    let (thirdMethodRecommendations, thirdMs) = profilePerformance (fun () -> TfIdfCosineSimilarityTextData.recommend recipes foodstuffWords |> Seq.take 10 |> Seq.toList)
-    let (fourthMethodRecommendations, fourthMs) = profilePerformance (fun () -> TfIdfCosineSimilarityStructuredDataWithDynamicAmountAltering.recommend recipes foodstuffAmounts 3 10)
-    let (fifthMethodRecommendations, fifthMs) = profilePerformance (fun () -> TfIdfCosineSimilarityStructuredDataWithDiversity.recommend recipes foodstuffAmounts 10)
-    let (sixthMethodRecommendations, sixthMs) = profilePerformance (fun () -> FoodToVector.recommend food2vecData recipes (toInfoLessAmounts foodstuffIds) |> Seq.take 10 |> Seq.toList)
-    let (seventhMethodRecommendations, seventhMs) = profilePerformance (fun () -> FoodToVector.recommend food2vecData recipes foodstuffAmounts |> Seq.take 10 |> Seq.toList)
+    
+    let (firstMethodRecommendations, firstMs) = profilePerformance (fun () ->
+        JaccardSimilarity.recommend recipes foodstuffIds |> Seq.take 10 |> Seq.toList)
+    
+    let (secondMethodRecommendations, secondMs) = profilePerformance (fun () ->
+        TfIdfCosineSimilarityStructuredData.recommend statistics foodstuffAmounts |> Seq.take 10 |> Seq.toList)
+    
+    let (thirdMethodRecommendations, thirdMs) = profilePerformance (fun () ->
+        TfIdfCosineSimilarityTextData.recommend recipes foodstuffWords |> Seq.take 10 |> Seq.toList)
+    
+    let (fourthMethodRecommendations, fourthMs) = profilePerformance (fun () ->
+        TfIdfCosineSimilarityStructuredDataWithDynamicAmountAltering.postProcess
+            (fun rs -> TfIdfCosineSimilarityStructuredData.recommend (TfIdfCosineSimilarityStructuredData.computeStatistics rs))
+            recipes
+            foodstuffAmounts
+            3
+            10)
+    
+    let (fifthMethodRecommendations, fifthMs) = profilePerformance (fun () ->
+        TfIdfCosineSimilarityStructuredDataWithDiversity.recommend statistics recipes foodstuffAmounts 10)
+    
+    let (sixthMethodRecommendations, sixthMs) = profilePerformance (fun () ->
+        FoodToVector.recommend food2vecData recipes (toInfoLessAmounts foodstuffIds) TfIdfCosineSimilarityStructuredData.termFrequency |> Seq.take 10 |> Seq.toList)
+    
+    let (seventhMethodRecommendations, seventhMs) = profilePerformance (fun () ->
+        FoodToVector.recommend food2vecData recipes foodstuffAmounts TfIdfCosineSimilarityStructuredData.termFrequency |> Seq.take 10 |> Seq.toList)
+    
+    let (eightMethodRecommendations, eightMs) = profilePerformance (fun () ->
+        FoodToVector.recommend food2vecData recipes foodstuffAmounts ((TfIdfCosineSimilarityStructuredData.tfIdf statistics) >> second) |> Seq.take 10 |> Seq.toList)
     
     let allRecipes = List.concat [
         firstMethodRecommendations;
@@ -42,7 +65,8 @@ let showRecommendations recipes food2vecData foodstuffAmounts foodstuffWords =
         fourthMethodRecommendations;
         fifthMethodRecommendations;
         sixthMethodRecommendations;
-        seventhMethodRecommendations
+        seventhMethodRecommendations;
+        eightMethodRecommendations;
     ]
     
     let counts =
@@ -82,7 +106,8 @@ let showRecommendations recipes food2vecData foodstuffAmounts foodstuffWords =
     printMethod "TF-IDF with structured data (Iterative)" fourthMethodRecommendations fourthMs (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) foodstuffAmounts |> Binary)
     printMethod "TF-IDF with structured data (MMR)" fifthMethodRecommendations fifthMs (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) foodstuffAmounts |> Binary)
     printMethod "Food2Vec (mean)" sixthMethodRecommendations sixthMs ((findMaxSimilarity foodstuffIds) >> Distance)
-    printMethod "Food2Vec (weighted mean)" seventhMethodRecommendations seventhMs ((findMaxSimilarity foodstuffIds) >> Distance)
+    printMethod "Food2Vec (TF weighted mean)" seventhMethodRecommendations seventhMs ((findMaxSimilarity foodstuffIds) >> Distance)
+    printMethod "Food2Vec (TF-IDF weighted mean)" eightMethodRecommendations eightMs ((findMaxSimilarity foodstuffIds) >> Distance)
     
     printfn "</div>"
     printfn "<div style=\"clear: both;\"></div>"
@@ -260,56 +285,18 @@ let main argv =
             "garam";
             "masala";
         ]
-        
-    run
-        @"
-            Case 5: Shopping list with ingredients suiting for Lasanga.
-            User profile:
-                - beef
-                - carrots
-                - tomatoes
-                - parmesan
-        "
-        [
-            {
-                Value = None
-                Unit = None
-                FoodstuffId = Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241") // Beef
-            };
-            {
-                Value = None
-                Unit = None
-                FoodstuffId = Guid("274f4bc5-63c8-4f46-aba1-a409b5e78dd4") // Carrots
-            };
-            {
-                Value = None
-                Unit = None
-                FoodstuffId = Guid("241505a7-c6d7-4a7b-a913-aad0389c4606") // Tomatoes
-            };
-            {
-                Value = None
-                Unit = None
-                FoodstuffId = Guid("7dc3db3c-8422-473d-8344-2f8653157581") // Parmesan cheese
-            };
-        ]
-        [
-            "beef";
-            "ground";
-            "carrot";
-            "tomatoes";
-            "parmesan";
-        ]
 
+    // TODO: polish this, it really must be representative
     run
         @"
             Case 5: Simulating real shopping list when shopping.
             User profile:
-                - beef
-                - carrots
-                - tomatoes
-                - yogurt
-                - potatoes
-                - bell peppers
+                - beef (4 pounds)
+                - carrots (5 pieces)
+                - tomatoes (5 pieces)
+                - yogurt (3 pieces)
+                - potatoes (3 pounds)
+                - bell peppers (3 pounds)
         "
         [
             {

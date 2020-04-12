@@ -71,8 +71,8 @@ module Data =
          |> Seq.map parseLine
          |> Map.ofSeq
 
-let recommend foodstuffVectors recipes foodstuffAmounts =
-    let amountsToWeightedFoodstuffs = List.map (fun (a: FoodstuffAmount) -> { FoodstuffId = a.FoodstuffId; Weight = TfIdfCosineSimilarityStructuredData.termFrequency a })
+let recommend foodstuffVectors recipes foodstuffAmounts weight =
+    let amountsToWeightedFoodstuffs = List.map (fun (a: FoodstuffAmount) -> { FoodstuffId = a.FoodstuffId; Weight = weight a })
     let weightedFoodstuffs = amountsToWeightedFoodstuffs foodstuffAmounts
     let inputVector = vectorize foodstuffVectors weightedFoodstuffs
     
