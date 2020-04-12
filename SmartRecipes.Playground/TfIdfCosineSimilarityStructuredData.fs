@@ -5,23 +5,11 @@ open SmartRecipes.Playground
 open Model
 open Library
 
-// This method works well, recommends very similar recipes.
-// Since it uses structured data, it gives a relevant implementation of term frequency, that can be improved.
-// Problem is that it recommends too similar recipes and suffers from poorly cleaned structured data.
-// Consider "lean beef" vs "beef", this method gives those ingredients no similarity.
-// Therefore we are forced to choose (which we might anyway) to distinguish such data directly on them = changing the data.
-
 type DataSetStatistics = {
     NumberOfRecipes: float
     FoodstuffFrequencies: Map<Guid, float>
     InverseIndex: Map<Guid, Recipe list>
 }
-
-// TODO: Notes in improvements
-// - put much more weight on termFrequency (exponential)
-// - penalize recipes with small number of ingredients (especially 1-3, some normal distribution, to also penalize big ones ?)
-// - foodstuff similarity (food2vec) to give at least some sense to red vs. white onion - maybe even consider some foodstuff for identic ?
-//     - this might lead to different method (like finding the nearest ingredient for every ingredient in the other recipe)
 
 // Term frequency ~ ingredient frequency in single recipe is 1 by default, but for chosen and most used unit, its amount is taken if present
 let termFrequency foodstuffAmount =
@@ -77,7 +65,7 @@ let recommend recipes foodstuffAmounts =
         foodstuffAmounts
         |> List.collect (fun a -> Map.find a.FoodstuffId statistics.InverseIndex)
         |> List.distinctBy (fun r -> r.Id)
-
+        
     let recipesToRecommend = 
         relevantRecipes
         |> Seq.map (fun r -> (r, vectorizeRecipe statistics r |> cosineSimilarity inputVector))

@@ -29,7 +29,7 @@ let getIngredients () =
             let unit = Sql.readString "unit" row
             let comment = Sql.readString "comment" row
             let! displayLine = Sql.readString "displayline" row
-            let amount = Sql.readDecimal "amount" row |> Option.map float
+            let amount = Sql.readNumber "amount" row |> Option.map float
             let! foodstuffId = Sql.readUuid "foodstuffid" row
             let! recipeId = Sql.readUuid "recipeid" row
             return { Amount = { Value = amount; Unit = unit; FoodstuffId = foodstuffId }; Comment = comment; DisplayLine = displayLine; RecipeId = recipeId }

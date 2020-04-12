@@ -103,27 +103,80 @@ let main argv =
         printfn "<h1>%s</h1><br>" (introText.Replace("\n", "<br>"))
         showRecommendations recipes food2vecData amounts words
         
+//    run
+//        @"
+//            Case 1: Searching with common ingredients with amounts specified (no specific edge-case).
+//            User profile:
+//                - beef (1 pound)
+//                - bell peppers (4 pieces)
+//                - mushrooms (5 pieces)
+//        "
+//        [
+//            {
+//                Value = Some 1.0
+//                Unit = Some "pound"
+//                FoodstuffId = Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241") // Beef
+//            };
+//            {
+//                Value = Some 4.0
+//                Unit = Some "pieces"
+//                FoodstuffId = Guid("27b43955-3361-48a1-b16f-9d339c808b20") // Bell peppers
+//            };
+//            {
+//                Value = Some 5.0
+//                Unit = Some "pieces"
+//                FoodstuffId = Guid("491ed56e-1c1f-4d3f-8c61-27e3f4dcb32c") // Mushrooms
+//            }
+//        ]
+//        [
+//            "ground";
+//            "beef";
+//            "bell";
+//            "peppers";
+//            "mushrooms";
+//        ]
+//        
+//    run
+//        @"
+//            Case 2: Searching with very common ingredients.
+//            User profile:
+//                - salt (very common)
+//                - pepper (very common)
+//                - garam masala (uncommon)
+//        "
+//        [
+//            {
+//                Value = None
+//                Unit = None
+//                FoodstuffId = Guid("24b1b115-07e9-4d8f-b0a1-a38639654b7d") // Garam masala
+//            };
+//            {
+//                Value = None
+//                Unit = None
+//                FoodstuffId = Guid("2c6d80e8-f3ef-4845-bfc2-bd8e84c86bd9") // Pepper
+//            };
+//            {
+//                Value = None
+//                Unit = None
+//                FoodstuffId = Guid("cc8f46dd-27a3-4042-8b25-459f6d4a3679") // Salt
+//            }
+//        ]
+//        [
+//            "salt";
+//            "pepper";
+//            "garam";
+//            "masala";
+//        ]
+
     run
         @"
-            Case 1: Searching with common ingredients with amounts specified (no specific edge-case).
+            Case 3.1: Testing relevance of ingredient amounts.
             User profile:
-                - beef (1 pound)
-                - bell peppers (4 pieces)
-                - mushrooms (5 pieces)
+                - mushrooms (1 pieces)
         "
         [
             {
                 Value = Some 1.0
-                Unit = Some "pound"
-                FoodstuffId = Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241") // Beef
-            };
-            {
-                Value = Some 4.0
-                Unit = Some "pieces"
-                FoodstuffId = Guid("27b43955-3361-48a1-b16f-9d339c808b20") // Bell peppers
-            };
-            {
-                Value = Some 5.0
                 Unit = Some "pieces"
                 FoodstuffId = Guid("491ed56e-1c1f-4d3f-8c61-27e3f4dcb32c") // Mushrooms
             }
@@ -138,94 +191,23 @@ let main argv =
         
     run
         @"
-            Case 2: Searching with very common ingredients.
+            Case 3.2: Testing relevance of ingredient amounts.
             User profile:
-                - salt (very common)
-                - pepper (very common)
-                - garam masala (uncommon)
+                - mushrooms (20 pieces)
         "
         [
             {
-                Value = None
-                Unit = None
-                FoodstuffId = Guid("24b1b115-07e9-4d8f-b0a1-a38639654b7d") // Garam masala
-            };
-            {
-                Value = None
-                Unit = None
-                FoodstuffId = Guid("2c6d80e8-f3ef-4845-bfc2-bd8e84c86bd9") // Pepper
-            };
-            {
-                Value = None
-                Unit = None
-                FoodstuffId = Guid("cc8f46dd-27a3-4042-8b25-459f6d4a3679") // Salt
+                Value = Some 20.0
+                Unit = Some "pieces"
+                FoodstuffId = Guid("491ed56e-1c1f-4d3f-8c61-27e3f4dcb32c") // Mushrooms
             }
         ]
         [
-            "salt";
-            "pepper";
-            "garam";
-            "masala";
-        ]
-        
-    // INPUT: aiming to get this recipe recommended - https://www.allrecipes.com/recipe/223042/chicken-parmesan/
-    //
-    // Database is polluted with a lot of chicken breast variations = hard to select for user which one he wants with the structured method.
-    // Structured method again recommended first recipes with just a chicken breast.
-    // Neither of them recommended desired recipe, but structured approach recommended close enough recipe - Garlic Chicken, which has parmesan
-    //
-    // Unstructured method recommended first a big recipe (pizza with lot of ingredient), however the parmesan wasn't used directly.
-    // The ingredient was parmesan cheese sauce. This could not happen with structured data.
-    //
-    // Most of the recipes don't have parmesan at all, since it is a very common ingredient.
-    run
-        "Aiming to get chicken parmesan without much amount info."
-        [
-            {
-                Value = Some 2.0
-                Unit = Some "pound"
-                FoodstuffId = Guid("cbd25042-ef0b-467f-8dfd-4ff70c2e5824") // Chicken breasts
-            };
-            {
-                Value = None
-                Unit = None
-                FoodstuffId = Guid("7dc3db3c-8422-473d-8344-2f8653157581") // Parmesan cheese
-            }
-        ]
-        [
-            "chicken";
-            "breasts";
-            "parmesan";
-            "cheese";
-        ]
-        
-    // Section with https://www.allrecipes.com/recipe/223042/chicken-parmesan/,
-    // It is a simple recipe with common ingredients, not much of them
-        
-    // INPUT: aiming to get this recipe recommended - https://www.allrecipes.com/recipe/223042/chicken-parmesan/,
-    // but providing more info about amounts in structured method
-    //
-    // I put crazy values there, since small ones did not change much, but it really helped.
-    // The structured method provided very relevant results, even tho the desired recipe still misses because of chicken ingredient mismatch.
-    run
-        "Aiming to get chicken parmesan with more amount info."
-        [
-            {
-                Value = Some 30.0
-                Unit = Some "pound"
-                FoodstuffId = Guid("cbd25042-ef0b-467f-8dfd-4ff70c2e5824") // Chicken breasts
-            };
-            {
-                Value = Some 100.0
-                Unit = Some "cup"
-                FoodstuffId = Guid("7dc3db3c-8422-473d-8344-2f8653157581") // Parmesan cheese
-            }
-        ]
-        [
-            "chicken";
-            "breasts";
-            "parmesan";
-            "cheese";
+            "ground";
+            "beef";
+            "bell";
+            "peppers";
+            "mushrooms";
         ]
         
     // Section with https://www.allrecipes.com/recipe/90105/butter-chickpea-curry/
@@ -238,26 +220,26 @@ let main argv =
     // Structured method did recommend desired recipe. We can see pretty great results for this case.
     //
     // Text based method did recommend masala recipes first, but also lot of them without any chickpeas.
-    run
-        "Aiming to get butter chickpea curry."
-        [
-            {
-                Value = None
-                Unit = None
-                FoodstuffId = Guid("24b1b115-07e9-4d8f-b0a1-a38639654b7d") // Garam masala
-            };
-            {
-                Value = None
-                Unit = None
-                FoodstuffId = Guid("b17a087c-dcd1-4bec-b481-00d2165fd18a") // Chickpeas
-            }
-        ]
-        [
-            "chickpeas";
-            "garam";
-            "masala";
-        ]
-        
+//    run
+//        "Aiming to get butter chickpea curry."
+//        [
+//            {
+//                Value = None
+//                Unit = None
+//                FoodstuffId = Guid("24b1b115-07e9-4d8f-b0a1-a38639654b7d") // Garam masala
+//            };
+//            {
+//                Value = None
+//                Unit = None
+//                FoodstuffId = Guid("b17a087c-dcd1-4bec-b481-00d2165fd18a") // Chickpeas
+//            }
+//        ]
+//        [
+//            "chickpeas";
+//            "garam";
+//            "masala";
+//        ]
+//        
     // INPUT https://www.allrecipes.com/recipe/223042/chicken-parmesan/ and https://www.allrecipes.com/recipe/90105/butter-chickpea-curry/
     // Both recipes were recommended individually, this will merge their inputs together
     //
@@ -267,90 +249,90 @@ let main argv =
     //
     // Text based method did recommend also only Garam masala, but there is no way to tune it from the user perspective by amounts.
     // On the other hand, it did recommend some masala + chicken recipe (combining accross recipe), probably due to bad structured data for chicken.
-    run
-        "Aiming to get chicken parmesan and butter chickpea curry."   
-        [
-            {
-                Value = Some 2.0
-                Unit = Some "pound"
-                FoodstuffId = Guid("cbd25042-ef0b-467f-8dfd-4ff70c2e5824") // Chicken breasts
-            };
-            {
-                Value = Some 1.0
-                Unit = Some "pound"
-                FoodstuffId = Guid("7dc3db3c-8422-473d-8344-2f8653157581") // Parmesan cheese
-            };
-            {
-                Value = None
-                Unit = None
-                FoodstuffId = Guid("24b1b115-07e9-4d8f-b0a1-a38639654b7d") // Garam masala
-            };
-            {
-                Value = Some 1.0
-                Unit = Some "pound"
-                FoodstuffId = Guid("b17a087c-dcd1-4bec-b481-00d2165fd18a") // Chickpeas
-            }
-        ]
-        [
-            "chicken";
-            "breasts";
-            "parmesan";
-            "cheese";
-            "chickpeas";
-            "garam";
-            "masala";
-        ]
+//    run
+//        "Aiming to get chicken parmesan and butter chickpea curry."   
+//        [
+//            {
+//                Value = Some 2.0
+//                Unit = Some "pound"
+//                FoodstuffId = Guid("cbd25042-ef0b-467f-8dfd-4ff70c2e5824") // Chicken breasts
+//            };
+//            {
+//                Value = Some 1.0
+//                Unit = Some "pound"
+//                FoodstuffId = Guid("7dc3db3c-8422-473d-8344-2f8653157581") // Parmesan cheese
+//            };
+//            {
+//                Value = None
+//                Unit = None
+//                FoodstuffId = Guid("24b1b115-07e9-4d8f-b0a1-a38639654b7d") // Garam masala
+//            };
+//            {
+//                Value = Some 1.0
+//                Unit = Some "pound"
+//                FoodstuffId = Guid("b17a087c-dcd1-4bec-b481-00d2165fd18a") // Chickpeas
+//            }
+//        ]
+//        [
+//            "chicken";
+//            "breasts";
+//            "parmesan";
+//            "cheese";
+//            "chickpeas";
+//            "garam";
+//            "masala";
+//        ]
         
         
     // Section - much more ingredients, simulating real shopping list
     //
     // Pretty disappointing results, pretty low on matches, not really much ingredients combined (probably due to lack of such recipes?).
-    run
-        "Simulating classic shopping list."
-        [
-            {
-                Value = Some 4.0
-                Unit = Some "pound"
-                FoodstuffId = Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241") // Beef
-            };
-            {
-                Value = Some 5.0
-                Unit = Some "pieces"
-                FoodstuffId = Guid("274f4bc5-63c8-4f46-aba1-a409b5e78dd4") // Carrots
-            };
-            {
-                Value = Some 5.0
-                Unit = Some "pieces"
-                FoodstuffId = Guid("241505a7-c6d7-4a7b-a913-aad0389c4606") // Tomatoes
-            };
-            {
-                Value = Some 3.0
-                Unit = Some "pieces"
-                FoodstuffId = Guid("80a641dd-f9a3-4484-ba6e-466ceda111f1") // Yogurt
-            };
-            {
-                Value = Some 3.0
-                Unit = Some "pound"
-                FoodstuffId = Guid("04c7dad3-657b-4fb6-8df9-a4cc3fb30408") // Potato
-            };
-            {
-                Value = Some 3.0
-                Unit = Some "pieces"
-                FoodstuffId = Guid("27b43955-3361-48a1-b16f-9d339c808b20") // Bell peppers
-            }
-        ]
-        [
-            "pork";
-            "chop";
-            "chicken";
-            "thighs";
-            "cheddar";
-            "cheese";
-            "yogurt";
-            "potato";
-            "bell";
-            "peppers"
-        ]
+//    run
+//        "Simulating classic shopping list."
+//        [
+//            {
+//                Value = Some 4.0
+//                Unit = Some "pound"
+//                FoodstuffId = Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241") // Beef
+//            };
+//            {
+//                Value = Some 5.0
+//                Unit = Some "pieces"
+//                FoodstuffId = Guid("274f4bc5-63c8-4f46-aba1-a409b5e78dd4") // Carrots
+//            };
+//            {
+//                Value = Some 5.0
+//                Unit = Some "pieces"
+//                FoodstuffId = Guid("241505a7-c6d7-4a7b-a913-aad0389c4606") // Tomatoes
+//            };
+//            {
+//                Value = Some 3.0
+//                Unit = Some "pieces"
+//                FoodstuffId = Guid("80a641dd-f9a3-4484-ba6e-466ceda111f1") // Yogurt
+//            };
+//            {
+//                Value = Some 3.0
+//                Unit = Some "pound"
+//                FoodstuffId = Guid("04c7dad3-657b-4fb6-8df9-a4cc3fb30408") // Potato
+//            };
+//            {
+//                Value = Some 3.0
+//                Unit = Some "pieces"
+//                FoodstuffId = Guid("27b43955-3361-48a1-b16f-9d339c808b20") // Bell peppers
+//            }
+//        ]
+//        [
+//            "pork";
+//            "chop";
+//            "chicken";
+//            "thighs";
+//            "cheddar";
+//            "cheese";
+//            "yogurt";
+//            "potato";
+//            "bell";
+//            "peppers"
+//        ]
         
     // INPUT: Lasagna basket
     //
@@ -359,37 +341,37 @@ let main argv =
     // Structured based recommended recipe even with 5/5 hits, basically ideal recipe.
     //
     // Text based is noticeably worse.
-    run
-        "Lasagna basket."
-        [
-            {
-                Value = None
-                Unit = None
-                FoodstuffId = Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241") // Beef
-            };
-            {
-                Value = None
-                Unit = None
-                FoodstuffId = Guid("274f4bc5-63c8-4f46-aba1-a409b5e78dd4") // Carrots
-            };
-            {
-                Value = None
-                Unit = None
-                FoodstuffId = Guid("241505a7-c6d7-4a7b-a913-aad0389c4606") // Tomatoes
-            };
-            {
-                Value = None
-                Unit = None
-                FoodstuffId = Guid("7dc3db3c-8422-473d-8344-2f8653157581") // Parmesan cheese
-            };
-        ]
-        [
-            "beef";
-            "ground";
-            "carrot";
-            "tomatoes";
-            "parmesan";
-        ]
+//    run
+//        "Lasagna basket."
+//        [
+//            {
+//                Value = None
+//                Unit = None
+//                FoodstuffId = Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241") // Beef
+//            };
+//            {
+//                Value = None
+//                Unit = None
+//                FoodstuffId = Guid("274f4bc5-63c8-4f46-aba1-a409b5e78dd4") // Carrots
+//            };
+//            {
+//                Value = None
+//                Unit = None
+//                FoodstuffId = Guid("241505a7-c6d7-4a7b-a913-aad0389c4606") // Tomatoes
+//            };
+//            {
+//                Value = None
+//                Unit = None
+//                FoodstuffId = Guid("7dc3db3c-8422-473d-8344-2f8653157581") // Parmesan cheese
+//            };
+//        ]
+//        [
+//            "beef";
+//            "ground";
+//            "carrot";
+//            "tomatoes";
+//            "parmesan";
+//        ]
         
     printFooter ()
         
