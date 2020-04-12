@@ -172,6 +172,8 @@ let main argv =
         @"
             Case 3.1: Testing relevance of ingredient amounts.
             User profile:
+                - chicken breasts (5 pounds)
+                - parmesan chees (not specified)
         "
         [
             {
@@ -196,6 +198,8 @@ let main argv =
         @"
             Case 3.2: Testing relevance of ingredient amounts.
             User profile:
+                - chicken breasts (not specified)
+                - parmesan chees (4 cups)
         "
         [
             {
