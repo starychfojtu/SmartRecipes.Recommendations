@@ -97,12 +97,76 @@ let main argv =
     printHeader ()
     
     let recipes = DataStore.getRecipes ()
-    let food2vecData = Data.loadFoodstuffVectors "vectors.txt"
-    let run introText input1 input2 input3 =
+    let food2vecData = Data.loadFoodstuffVectors "vectors-256.txt"
+    let run (introText: string) input1 input2 input3 =
         printfn "-------------RUN-START-------------- <br>"
-        printfn "<h1>%s</h1><br>" introText
+        printfn "<h1>%s</h1><br>" (introText.Replace("\n", "<br>"))
         showRecommendations recipes food2vecData input1 input2 input3
         printfn "-------------RUN-END---------------- <br>"
+        
+    run
+        @"
+            Case 1: Searching with very common ingredients.
+            User profile:
+                - salt (very common)
+                - pepper (very common)
+                - garam masala (uncommon)
+        "
+        [
+            Guid("cc8f46dd-27a3-4042-8b25-459f6d4a3679"); // Salt
+            Guid("2c6d80e8-f3ef-4845-bfc2-bd8e84c86bd9"); // Pepper
+            Guid("24b1b115-07e9-4d8f-b0a1-a38639654b7d"); // Garam masala
+        ]
+        [
+            {
+                Value = None
+                Unit = None
+                FoodstuffId = Guid("24b1b115-07e9-4d8f-b0a1-a38639654b7d") // Garam masala
+            };
+            {
+                Value = None
+                Unit = None
+                FoodstuffId = Guid("2c6d80e8-f3ef-4845-bfc2-bd8e84c86bd9") // Pepper
+            };
+            {
+                Value = None
+                Unit = None
+                FoodstuffId = Guid("cc8f46dd-27a3-4042-8b25-459f6d4a3679") // Salt
+            }
+        ]
+        [
+            "salt";
+            "pepper";
+            "garam";
+            "masala";
+        ]
+        
+    run
+        @"
+            Ingredient based - searching for ground beef and peppers.
+        "
+        [
+            Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241"); // Beef
+            Guid("27b43955-3361-48a1-b16f-9d339c808b20"); // Bell peppers
+        ]
+        [
+            {
+                Value = Some 2.0
+                Unit = Some "pound"
+                FoodstuffId = Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241") // Beef
+            };
+            {
+                Value = Some 4.0
+                Unit = Some "pieces"
+                FoodstuffId = Guid("27b43955-3361-48a1-b16f-9d339c808b20") // Bell peppers
+            }
+        ]
+        [
+            "ground";
+            "beef";
+            "bell";
+            "peppers";
+        ]
     
     // INPUT: small number of ingredients
     //
