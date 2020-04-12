@@ -219,199 +219,143 @@ let main argv =
             "parmesan";
             "cheese";
         ]
+ 
+    run
+        @"
+            Case 4: Input aiming to get 2 recipes recommended instead of just 1 combining everything.
+            User profile:
+                - chicken breasts (1 pounds)
+                - parmesan cheese (2 cups)
+                - garam masala (1 cup)
+                - chickpea (1 pound)
+        "
+        [
+            {
+                Value = Some 1.0
+                Unit = Some "pound"
+                FoodstuffId = Guid("cbd25042-ef0b-467f-8dfd-4ff70c2e5824") // Chicken breasts
+            };
+            {
+                Value = Some 2.0
+                Unit = Some "cups"
+                FoodstuffId = Guid("7dc3db3c-8422-473d-8344-2f8653157581") // Parmesan cheese
+            };
+            {
+                Value = Some 1.0
+                Unit = Some "cup"
+                FoodstuffId = Guid("24b1b115-07e9-4d8f-b0a1-a38639654b7d") // Garam masala
+            };
+            {
+                Value = Some 4.0
+                Unit = Some "pound"
+                FoodstuffId = Guid("b17a087c-dcd1-4bec-b481-00d2165fd18a") // Chickpeas
+            }
+        ]
+        [
+            "chicken";
+            "breasts";
+            "parmesan";
+            "cheese";
+            "chickpeas";
+            "garam";
+            "masala";
+        ]
         
-    // Section with https://www.allrecipes.com/recipe/90105/butter-chickpea-curry/
-    // It is a bit harder recipe with specific ingredients
-        
-    // INPUT: aiming to get this recipe recommended - https://www.allrecipes.com/recipe/90105/butter-chickpea-curry/
-    //
-    // Here we can see that we got pretty similar results from both methods - 2 recipes were recommended by both.
-    //
-    // Structured method did recommend desired recipe. We can see pretty great results for this case.
-    //
-    // Text based method did recommend masala recipes first, but also lot of them without any chickpeas.
-//    run
-//        "Aiming to get butter chickpea curry."
-//        [
-//            {
-//                Value = None
-//                Unit = None
-//                FoodstuffId = Guid("24b1b115-07e9-4d8f-b0a1-a38639654b7d") // Garam masala
-//            };
-//            {
-//                Value = None
-//                Unit = None
-//                FoodstuffId = Guid("b17a087c-dcd1-4bec-b481-00d2165fd18a") // Chickpeas
-//            }
-//        ]
-//        [
-//            "chickpeas";
-//            "garam";
-//            "masala";
-//        ]
-//        
-    // INPUT https://www.allrecipes.com/recipe/223042/chicken-parmesan/ and https://www.allrecipes.com/recipe/90105/butter-chickpea-curry/
-    // Both recipes were recommended individually, this will merge their inputs together
-    //
-    // Structured one recommended mainly Garam masala, since it is special (which is pretty good on one hand, if I bought garam masala, I probably want to use it).
-    // However, when I put a lot of value/unit on chicken and parmasan, it got recommended over masala.
-    // TODO: I might want to tune spices like garam masala or other super rare ingredients.
-    //
-    // Text based method did recommend also only Garam masala, but there is no way to tune it from the user perspective by amounts.
-    // On the other hand, it did recommend some masala + chicken recipe (combining accross recipe), probably due to bad structured data for chicken.
-//    run
-//        "Aiming to get chicken parmesan and butter chickpea curry."   
-//        [
-//            {
-//                Value = Some 2.0
-//                Unit = Some "pound"
-//                FoodstuffId = Guid("cbd25042-ef0b-467f-8dfd-4ff70c2e5824") // Chicken breasts
-//            };
-//            {
-//                Value = Some 1.0
-//                Unit = Some "pound"
-//                FoodstuffId = Guid("7dc3db3c-8422-473d-8344-2f8653157581") // Parmesan cheese
-//            };
-//            {
-//                Value = None
-//                Unit = None
-//                FoodstuffId = Guid("24b1b115-07e9-4d8f-b0a1-a38639654b7d") // Garam masala
-//            };
-//            {
-//                Value = Some 1.0
-//                Unit = Some "pound"
-//                FoodstuffId = Guid("b17a087c-dcd1-4bec-b481-00d2165fd18a") // Chickpeas
-//            }
-//        ]
-//        [
-//            "chicken";
-//            "breasts";
-//            "parmesan";
-//            "cheese";
-//            "chickpeas";
-//            "garam";
-//            "masala";
-//        ]
-        
-        
-    // Section - much more ingredients, simulating real shopping list
-    //
-    // Pretty disappointing results, pretty low on matches, not really much ingredients combined (probably due to lack of such recipes?).
-//    run
-//        "Simulating classic shopping list."
-//        [
-//            {
-//                Value = Some 4.0
-//                Unit = Some "pound"
-//                FoodstuffId = Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241") // Beef
-//            };
-//            {
-//                Value = Some 5.0
-//                Unit = Some "pieces"
-//                FoodstuffId = Guid("274f4bc5-63c8-4f46-aba1-a409b5e78dd4") // Carrots
-//            };
-//            {
-//                Value = Some 5.0
-//                Unit = Some "pieces"
-//                FoodstuffId = Guid("241505a7-c6d7-4a7b-a913-aad0389c4606") // Tomatoes
-//            };
-//            {
-//                Value = Some 3.0
-//                Unit = Some "pieces"
-//                FoodstuffId = Guid("80a641dd-f9a3-4484-ba6e-466ceda111f1") // Yogurt
-//            };
-//            {
-//                Value = Some 3.0
-//                Unit = Some "pound"
-//                FoodstuffId = Guid("04c7dad3-657b-4fb6-8df9-a4cc3fb30408") // Potato
-//            };
-//            {
-//                Value = Some 3.0
-//                Unit = Some "pieces"
-//                FoodstuffId = Guid("27b43955-3361-48a1-b16f-9d339c808b20") // Bell peppers
-//            }
-//        ]
-//        [
-//            "pork";
-//            "chop";
-//            "chicken";
-//            "thighs";
-//            "cheddar";
-//            "cheese";
-//            "yogurt";
-//            "potato";
-//            "bell";
-//            "peppers"
-//        ]
-        
-    // INPUT: Lasagna basket
-    //
-    // Neither did recommend lasagna directly, but we can see pretty good recommendations, similar foods to Lasagna even.
-    //
-    // Structured based recommended recipe even with 5/5 hits, basically ideal recipe.
-    //
-    // Text based is noticeably worse.
-//    run
-//        "Lasagna basket."
-//        [
-//            {
-//                Value = None
-//                Unit = None
-//                FoodstuffId = Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241") // Beef
-//            };
-//            {
-//                Value = None
-//                Unit = None
-//                FoodstuffId = Guid("274f4bc5-63c8-4f46-aba1-a409b5e78dd4") // Carrots
-//            };
-//            {
-//                Value = None
-//                Unit = None
-//                FoodstuffId = Guid("241505a7-c6d7-4a7b-a913-aad0389c4606") // Tomatoes
-//            };
-//            {
-//                Value = None
-//                Unit = None
-//                FoodstuffId = Guid("7dc3db3c-8422-473d-8344-2f8653157581") // Parmesan cheese
-//            };
-//        ]
-//        [
-//            "beef";
-//            "ground";
-//            "carrot";
-//            "tomatoes";
-//            "parmesan";
-//        ]
+    run
+        @"
+            Case 5: Shopping list with ingredients suiting for Lasanga.
+            User profile:
+                - beef
+                - carrots
+                - tomatoes
+                - parmesan
+        "
+        [
+            {
+                Value = None
+                Unit = None
+                FoodstuffId = Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241") // Beef
+            };
+            {
+                Value = None
+                Unit = None
+                FoodstuffId = Guid("274f4bc5-63c8-4f46-aba1-a409b5e78dd4") // Carrots
+            };
+            {
+                Value = None
+                Unit = None
+                FoodstuffId = Guid("241505a7-c6d7-4a7b-a913-aad0389c4606") // Tomatoes
+            };
+            {
+                Value = None
+                Unit = None
+                FoodstuffId = Guid("7dc3db3c-8422-473d-8344-2f8653157581") // Parmesan cheese
+            };
+        ]
+        [
+            "beef";
+            "ground";
+            "carrot";
+            "tomatoes";
+            "parmesan";
+        ]
+
+    run
+        @"
+            Case 5: Simulating real shopping list when shopping.
+            User profile:
+                - beef
+                - carrots
+                - tomatoes
+                - yogurt
+                - potatoes
+                - bell peppers
+        "
+        [
+            {
+                Value = Some 4.0
+                Unit = Some "pound"
+                FoodstuffId = Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241") // Beef
+            };
+            {
+                Value = Some 5.0
+                Unit = Some "pieces"
+                FoodstuffId = Guid("274f4bc5-63c8-4f46-aba1-a409b5e78dd4") // Carrots
+            };
+            {
+                Value = Some 5.0
+                Unit = Some "pieces"
+                FoodstuffId = Guid("241505a7-c6d7-4a7b-a913-aad0389c4606") // Tomatoes
+            };
+            {
+                Value = Some 3.0
+                Unit = Some "pieces"
+                FoodstuffId = Guid("80a641dd-f9a3-4484-ba6e-466ceda111f1") // Yogurt
+            };
+            {
+                Value = Some 3.0
+                Unit = Some "pound"
+                FoodstuffId = Guid("04c7dad3-657b-4fb6-8df9-a4cc3fb30408") // Potato
+            };
+            {
+                Value = Some 3.0
+                Unit = Some "pieces"
+                FoodstuffId = Guid("27b43955-3361-48a1-b16f-9d339c808b20") // Bell peppers
+            }
+        ]
+        [
+            "pork";
+            "chop";
+            "chicken";
+            "thighs";
+            "cheddar";
+            "cheese";
+            "yogurt";
+            "potato";
+            "bell";
+            "peppers"
+        ]
         
     printFooter ()
-        
-    // Overall impressions
-    // Structured:
-    // Pros:
-    // - ability to define exactly the ingredient I have
-    // - ability to put amount of given ingredient (which proven to be very relevant for the results)
-    // - overall good recommendations with decent hit rate
-    // Cons:
-    // - sometimes single-ingredient meals, too strict
-    // - impossibility to define what is not in database
-    // - heavily dependent on data quality (deduplication)
-    // - no sense of similarity between foodstuffs (red vs white onion)
-    //
-    // Text-based:
-    // Pros:
-    // - ability to define more vaguely what is the content (red vs white onion will still hit onion word)
-    // - not too dependent on data quality
-    // Cons:
-    // - no ability to define exactly what I have (the first advantage is also a disadvantage, potato vs potato chips)
-    // - not really precise matches, overall worse recommendations
-    //
-    // Both methods failed on large basket.
-    // user has to pick recipes one-by-one, we can subtract the chosen recipe from the shopping list, but our algorithms are not designed
-    // for proposing multiple complementary recipes at once.
-    
-    // TODO:
-    // - 
-    // - (Maybe, probably not now)SVD ?? changing the basis from foodstuff to foodstuff groups which can be substituted (red onion, vs white onion),
-    //     problem is that we have to decide this on binary basis, but only other solution is 2vec probably
     
     0 // return an integer exit code

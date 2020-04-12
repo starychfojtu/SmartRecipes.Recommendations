@@ -18,10 +18,10 @@ let transformInput (recipes: Recipe list) (foodstuffAmounts: FoodstuffAmount lis
         
     foodstuffAmounts
     |> List.map (fun a ->
-        if Set.contains a.FoodstuffId foodstuffsIncludedInRecommendations 
-            then a
-            else { a with Value = a.Value |> Option.map ((*) 2.0) })
-    
+        let isAlreadyInRecommended = Set.contains a.FoodstuffId foodstuffsIncludedInRecommendations 
+        let changeAmountFunction = if isAlreadyInRecommended then ((/) 2.0) else ((*) 2.0)
+        { a with Value = a.Value |> Option.map changeAmountFunction })
+       
 let recommend recipes foodstuffAmounts step n =
     let rec recommendRecursive allRecommendations foodstuffAmounts k =
         let recommendableRecipes = List.except allRecommendations recipes
