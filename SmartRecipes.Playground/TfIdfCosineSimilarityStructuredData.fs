@@ -29,7 +29,7 @@ let termFrequency foodstuffAmount =
         match foodstuffAmount.Unit with
         | Some "cup" -> foodstuffAmount.Value |> Option.map ((*) 2.0)
         | Some "pieces" -> foodstuffAmount.Value |> Option.map ((*) 2.0)
-        | Some "pound" -> foodstuffAmount.Value |> Option.map ((*) 5.0)
+        | Some "pound" -> foodstuffAmount.Value |> Option.map ((*) 7.0)
         | Some _ -> None
         | None -> None
         

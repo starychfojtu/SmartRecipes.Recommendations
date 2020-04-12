@@ -25,14 +25,15 @@ let printRecipes doesIngredientMatch recipes =
     
 let toInfoLessAmounts = List.map (fun (id: Guid) -> { FoodstuffId = id; Unit = None; Value = None })
     
-let showRecommendations recipes food2vecData input1 input2 input3 =
-    let (firstMethodRecommendations, firstMs) = profilePerformance (fun () -> JaccardSimilarity.recommend recipes input1 |> Seq.take 10 |> Seq.toList)
-    let (secondMethodRecommendations, secondMs) = profilePerformance (fun () -> TfIdfCosineSimilarityStructuredData.recommend recipes input2 |> Seq.take 10 |> Seq.toList)
-    let (thirdMethodRecommendations, thirdMs) = profilePerformance (fun () -> TfIdfCosineSimilarityTextData.recommend recipes input3 |> Seq.take 10 |> Seq.toList)
-    let (fourthMethodRecommendations, fourthMs) = profilePerformance (fun () -> TfIdfCosineSimilarityStructuredDataWithDynamicAmountAltering.recommend recipes input2 3 10)
-    let (fifthMethodRecommendations, fifthMs) = profilePerformance (fun () -> TfIdfCosineSimilarityStructuredDataWithDiversity.recommend recipes input2 10)
-    let (sixthMethodRecommendations, sixthMs) = profilePerformance (fun () -> FoodToVector.recommend food2vecData recipes (toInfoLessAmounts input1) |> Seq.take 10 |> Seq.toList)
-    let (seventhMethodRecommendations, seventhMs) = profilePerformance (fun () -> FoodToVector.recommend food2vecData recipes input2 |> Seq.take 10 |> Seq.toList)
+let showRecommendations recipes food2vecData foodstuffAmounts foodstuffWords =
+    let foodstuffIds = foodstuffAmounts |> List.map (fun a -> a.FoodstuffId)
+    let (firstMethodRecommendations, firstMs) = profilePerformance (fun () -> JaccardSimilarity.recommend recipes foodstuffIds |> Seq.take 10 |> Seq.toList)
+    let (secondMethodRecommendations, secondMs) = profilePerformance (fun () -> TfIdfCosineSimilarityStructuredData.recommend recipes foodstuffAmounts |> Seq.take 10 |> Seq.toList)
+    let (thirdMethodRecommendations, thirdMs) = profilePerformance (fun () -> TfIdfCosineSimilarityTextData.recommend recipes foodstuffWords |> Seq.take 10 |> Seq.toList)
+    let (fourthMethodRecommendations, fourthMs) = profilePerformance (fun () -> TfIdfCosineSimilarityStructuredDataWithDynamicAmountAltering.recommend recipes foodstuffAmounts 3 10)
+    let (fifthMethodRecommendations, fifthMs) = profilePerformance (fun () -> TfIdfCosineSimilarityStructuredDataWithDiversity.recommend recipes foodstuffAmounts 10)
+    let (sixthMethodRecommendations, sixthMs) = profilePerformance (fun () -> FoodToVector.recommend food2vecData recipes (toInfoLessAmounts foodstuffIds) |> Seq.take 10 |> Seq.toList)
+    let (seventhMethodRecommendations, seventhMs) = profilePerformance (fun () -> FoodToVector.recommend food2vecData recipes foodstuffAmounts |> Seq.take 10 |> Seq.toList)
     
     let allRecipes = List.concat [
         firstMethodRecommendations;
@@ -75,13 +76,13 @@ let showRecommendations recipes food2vecData input1 input2 input3 =
         printfn "Recipe: %s; Count: %i <br>" recipe count
     printfn ""
     
-    printMethod "Jaccard" firstMethodRecommendations firstMs (fun i -> List.exists (fun id -> id = i.Amount.FoodstuffId) input1 |> Binary)
-    printMethod "TF-IDF with structured data" secondMethodRecommendations secondMs (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) input2 |> Binary)
-    printMethod "TF-IDF with text data" thirdMethodRecommendations thirdMs (fun i -> List.exists (fun (t: string) -> i.DisplayLine.ToLowerInvariant().Contains(t)) input3 |> Binary)
-    printMethod "TF-IDF with structured data (Iterative)" fourthMethodRecommendations fourthMs (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) input2 |> Binary)
-    printMethod "TF-IDF with structured data (MMR)" fifthMethodRecommendations fifthMs (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) input2 |> Binary)
-    printMethod "Food2Vec (mean)" sixthMethodRecommendations sixthMs ((findMaxSimilarity input1) >> Distance)
-    printMethod "Food2Vec (weighted mean)" seventhMethodRecommendations seventhMs ((findMaxSimilarity input1) >> Distance)
+    printMethod "Jaccard" firstMethodRecommendations firstMs (fun i -> List.exists (fun id -> id = i.Amount.FoodstuffId) foodstuffIds |> Binary)
+    printMethod "TF-IDF with structured data" secondMethodRecommendations secondMs (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) foodstuffAmounts |> Binary)
+    printMethod "TF-IDF with text data" thirdMethodRecommendations thirdMs (fun i -> List.exists (fun (t: string) -> i.DisplayLine.ToLowerInvariant().Contains(t)) foodstuffWords |> Binary)
+    printMethod "TF-IDF with structured data (Iterative)" fourthMethodRecommendations fourthMs (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) foodstuffAmounts |> Binary)
+    printMethod "TF-IDF with structured data (MMR)" fifthMethodRecommendations fifthMs (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) foodstuffAmounts |> Binary)
+    printMethod "Food2Vec (mean)" sixthMethodRecommendations sixthMs ((findMaxSimilarity foodstuffIds) >> Distance)
+    printMethod "Food2Vec (weighted mean)" seventhMethodRecommendations seventhMs ((findMaxSimilarity foodstuffIds) >> Distance)
     
     printfn "</div>"
     printfn "<div style=\"clear: both;\"></div>"
@@ -98,25 +99,51 @@ let main argv =
     
     let recipes = DataStore.getRecipes ()
     let food2vecData = Data.loadFoodstuffVectors "vectors-256.txt"
-    let run (introText: string) input1 input2 input3 =
-        printfn "-------------RUN-START-------------- <br>"
+    let run (introText: string) amounts words =
         printfn "<h1>%s</h1><br>" (introText.Replace("\n", "<br>"))
-        showRecommendations recipes food2vecData input1 input2 input3
-        printfn "-------------RUN-END---------------- <br>"
+        showRecommendations recipes food2vecData amounts words
         
     run
         @"
-            Case 1: Searching with very common ingredients.
+            Case 1: Searching with common ingredients with amounts specified (no specific edge-case).
+            User profile:
+                - beef (1 pound)
+                - bell peppers (4 pieces)
+                - mushrooms (5 pieces)
+        "
+        [
+            {
+                Value = Some 1.0
+                Unit = Some "pound"
+                FoodstuffId = Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241") // Beef
+            };
+            {
+                Value = Some 4.0
+                Unit = Some "pieces"
+                FoodstuffId = Guid("27b43955-3361-48a1-b16f-9d339c808b20") // Bell peppers
+            };
+            {
+                Value = Some 5.0
+                Unit = Some "pieces"
+                FoodstuffId = Guid("491ed56e-1c1f-4d3f-8c61-27e3f4dcb32c") // Mushrooms
+            }
+        ]
+        [
+            "ground";
+            "beef";
+            "bell";
+            "peppers";
+            "mushrooms";
+        ]
+        
+    run
+        @"
+            Case 2: Searching with very common ingredients.
             User profile:
                 - salt (very common)
                 - pepper (very common)
                 - garam masala (uncommon)
         "
-        [
-            Guid("cc8f46dd-27a3-4042-8b25-459f6d4a3679"); // Salt
-            Guid("2c6d80e8-f3ef-4845-bfc2-bd8e84c86bd9"); // Pepper
-            Guid("24b1b115-07e9-4d8f-b0a1-a38639654b7d"); // Garam masala
-        ]
         [
             {
                 Value = None
@@ -141,63 +168,6 @@ let main argv =
             "masala";
         ]
         
-    run
-        @"
-            Ingredient based - searching for ground beef and peppers.
-        "
-        [
-            Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241"); // Beef
-            Guid("27b43955-3361-48a1-b16f-9d339c808b20"); // Bell peppers
-        ]
-        [
-            {
-                Value = Some 2.0
-                Unit = Some "pound"
-                FoodstuffId = Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241") // Beef
-            };
-            {
-                Value = Some 4.0
-                Unit = Some "pieces"
-                FoodstuffId = Guid("27b43955-3361-48a1-b16f-9d339c808b20") // Bell peppers
-            }
-        ]
-        [
-            "ground";
-            "beef";
-            "bell";
-            "peppers";
-        ]
-    
-    // INPUT: small number of ingredients
-    //
-    // Jaccard similarity recommends recipe with too few ingredients -> tries to minimize the union.
-    // Structured one recommends 
-    //
-    run
-        "Ingredient based - searching for ground beef and peppers."
-        [
-            Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241"); // Beef
-            Guid("27b43955-3361-48a1-b16f-9d339c808b20"); // Bell peppers
-        ]
-        [
-            {
-                Value = Some 2.0
-                Unit = Some "pound"
-                FoodstuffId = Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241") // Beef
-            };
-            {
-                Value = Some 4.0
-                Unit = Some "pieces"
-                FoodstuffId = Guid("27b43955-3361-48a1-b16f-9d339c808b20") // Bell peppers
-            }
-        ]
-        [
-            "ground";
-            "beef";
-            "bell";
-            "peppers";
-        ]
-        
     // INPUT: aiming to get this recipe recommended - https://www.allrecipes.com/recipe/223042/chicken-parmesan/
     //
     // Database is polluted with a lot of chicken breast variations = hard to select for user which one he wants with the structured method.
@@ -210,10 +180,6 @@ let main argv =
     // Most of the recipes don't have parmesan at all, since it is a very common ingredient.
     run
         "Aiming to get chicken parmesan without much amount info."
-        [
-            Guid("cbd25042-ef0b-467f-8dfd-4ff70c2e5824"); // Chicken breasts
-            Guid("7dc3db3c-8422-473d-8344-2f8653157581"); // Parmesan cheese
-        ]
         [
             {
                 Value = Some 2.0
@@ -241,13 +207,8 @@ let main argv =
     //
     // I put crazy values there, since small ones did not change much, but it really helped.
     // The structured method provided very relevant results, even tho the desired recipe still misses because of chicken ingredient mismatch.
-    // TODO: put more weight on the ingredient amounts.
     run
         "Aiming to get chicken parmesan with more amount info."
-        [
-            Guid("cbd25042-ef0b-467f-8dfd-4ff70c2e5824"); // Chicken breasts
-            Guid("7dc3db3c-8422-473d-8344-2f8653157581"); // Parmesan cheese
-        ]
         [
             {
                 Value = Some 30.0
@@ -280,10 +241,6 @@ let main argv =
     run
         "Aiming to get butter chickpea curry."
         [
-            Guid("24b1b115-07e9-4d8f-b0a1-a38639654b7d"); // Garam masala
-            Guid("b17a087c-dcd1-4bec-b481-00d2165fd18a"); // Chickpeas
-        ]
-        [
             {
                 Value = None
                 Unit = None
@@ -311,13 +268,7 @@ let main argv =
     // Text based method did recommend also only Garam masala, but there is no way to tune it from the user perspective by amounts.
     // On the other hand, it did recommend some masala + chicken recipe (combining accross recipe), probably due to bad structured data for chicken.
     run
-        "Aiming to get chicken parmesan and butter chickpea curry."
-        [
-            Guid("cbd25042-ef0b-467f-8dfd-4ff70c2e5824"); // Chicken breasts
-            Guid("7dc3db3c-8422-473d-8344-2f8653157581"); // Parmesan cheese
-            Guid("24b1b115-07e9-4d8f-b0a1-a38639654b7d"); // Garam masala
-            Guid("b17a087c-dcd1-4bec-b481-00d2165fd18a"); // Chickpeas
-        ]    
+        "Aiming to get chicken parmesan and butter chickpea curry."   
         [
             {
                 Value = Some 2.0
@@ -356,14 +307,6 @@ let main argv =
     // Pretty disappointing results, pretty low on matches, not really much ingredients combined (probably due to lack of such recipes?).
     run
         "Simulating classic shopping list."
-        [
-            Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241"); // Beef
-            Guid("274f4bc5-63c8-4f46-aba1-a409b5e78dd4"); // Carrots
-            Guid("241505a7-c6d7-4a7b-a913-aad0389c4606"); // Tomatoes
-            Guid("80a641dd-f9a3-4484-ba6e-466ceda111f1"); // Yogurt
-            Guid("04c7dad3-657b-4fb6-8df9-a4cc3fb30408"); // Potato
-            Guid("27b43955-3361-48a1-b16f-9d339c808b20"); // Bell peppers
-        ]
         [
             {
                 Value = Some 4.0
@@ -418,12 +361,6 @@ let main argv =
     // Text based is noticeably worse.
     run
         "Lasagna basket."
-        [
-            Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241"); // Beef
-            Guid("274f4bc5-63c8-4f46-aba1-a409b5e78dd4"); // Carrots
-            Guid("241505a7-c6d7-4a7b-a913-aad0389c4606"); // Tomatoes
-            Guid("7dc3db3c-8422-473d-8344-2f8653157581"); // Parmesan cheese
-        ]
         [
             {
                 Value = None
