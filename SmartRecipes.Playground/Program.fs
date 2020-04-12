@@ -103,80 +103,27 @@ let main argv =
         printfn "<h1>%s</h1><br>" (introText.Replace("\n", "<br>"))
         showRecommendations recipes food2vecData amounts words
         
-//    run
-//        @"
-//            Case 1: Searching with common ingredients with amounts specified (no specific edge-case).
-//            User profile:
-//                - beef (1 pound)
-//                - bell peppers (4 pieces)
-//                - mushrooms (5 pieces)
-//        "
-//        [
-//            {
-//                Value = Some 1.0
-//                Unit = Some "pound"
-//                FoodstuffId = Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241") // Beef
-//            };
-//            {
-//                Value = Some 4.0
-//                Unit = Some "pieces"
-//                FoodstuffId = Guid("27b43955-3361-48a1-b16f-9d339c808b20") // Bell peppers
-//            };
-//            {
-//                Value = Some 5.0
-//                Unit = Some "pieces"
-//                FoodstuffId = Guid("491ed56e-1c1f-4d3f-8c61-27e3f4dcb32c") // Mushrooms
-//            }
-//        ]
-//        [
-//            "ground";
-//            "beef";
-//            "bell";
-//            "peppers";
-//            "mushrooms";
-//        ]
-//        
-//    run
-//        @"
-//            Case 2: Searching with very common ingredients.
-//            User profile:
-//                - salt (very common)
-//                - pepper (very common)
-//                - garam masala (uncommon)
-//        "
-//        [
-//            {
-//                Value = None
-//                Unit = None
-//                FoodstuffId = Guid("24b1b115-07e9-4d8f-b0a1-a38639654b7d") // Garam masala
-//            };
-//            {
-//                Value = None
-//                Unit = None
-//                FoodstuffId = Guid("2c6d80e8-f3ef-4845-bfc2-bd8e84c86bd9") // Pepper
-//            };
-//            {
-//                Value = None
-//                Unit = None
-//                FoodstuffId = Guid("cc8f46dd-27a3-4042-8b25-459f6d4a3679") // Salt
-//            }
-//        ]
-//        [
-//            "salt";
-//            "pepper";
-//            "garam";
-//            "masala";
-//        ]
-
     run
         @"
-            Case 3.1: Testing relevance of ingredient amounts.
+            Case 1: Searching with common ingredients with amounts specified (no specific edge-case).
             User profile:
-                - mushrooms (1 pieces)
+                - beef (1 pound)
+                - bell peppers (4 pieces)
+                - mushrooms (5 pieces)
         "
         [
             {
                 Value = Some 1.0
+                Unit = Some "pound"
+                FoodstuffId = Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241") // Beef
+            };
+            {
+                Value = Some 4.0
+                Unit = Some "pieces"
+                FoodstuffId = Guid("27b43955-3361-48a1-b16f-9d339c808b20") // Bell peppers
+            };
+            {
+                Value = Some 5.0
                 Unit = Some "pieces"
                 FoodstuffId = Guid("491ed56e-1c1f-4d3f-8c61-27e3f4dcb32c") // Mushrooms
             }
@@ -191,23 +138,82 @@ let main argv =
         
     run
         @"
-            Case 3.2: Testing relevance of ingredient amounts.
+            Case 2: Searching with very common ingredients.
             User profile:
-                - mushrooms (20 pieces)
+                - salt (very common)
+                - pepper (very common)
+                - garam masala (uncommon)
         "
         [
             {
-                Value = Some 20.0
-                Unit = Some "pieces"
-                FoodstuffId = Guid("491ed56e-1c1f-4d3f-8c61-27e3f4dcb32c") // Mushrooms
+                Value = None
+                Unit = None
+                FoodstuffId = Guid("24b1b115-07e9-4d8f-b0a1-a38639654b7d") // Garam masala
+            };
+            {
+                Value = None
+                Unit = None
+                FoodstuffId = Guid("2c6d80e8-f3ef-4845-bfc2-bd8e84c86bd9") // Pepper
+            };
+            {
+                Value = None
+                Unit = None
+                FoodstuffId = Guid("cc8f46dd-27a3-4042-8b25-459f6d4a3679") // Salt
             }
         ]
         [
-            "ground";
-            "beef";
-            "bell";
-            "peppers";
-            "mushrooms";
+            "salt";
+            "pepper";
+            "garam";
+            "masala";
+        ]
+
+    run
+        @"
+            Case 3.1: Testing relevance of ingredient amounts.
+            User profile:
+        "
+        [
+            {
+                Value = Some 5.0
+                Unit = Some "pound"
+                FoodstuffId = Guid("cbd25042-ef0b-467f-8dfd-4ff70c2e5824") // Chicken breasts	
+            };
+            {
+                Value = None
+                Unit = None
+                FoodstuffId = Guid("7dc3db3c-8422-473d-8344-2f8653157581") // Parmesan cheese	
+            }
+        ]
+        [
+            "chicken";
+            "breasts";
+            "parmesan";
+            "cheese";
+        ]
+        
+    run
+        @"
+            Case 3.2: Testing relevance of ingredient amounts.
+            User profile:
+        "
+        [
+            {
+                Value = None
+                Unit = None
+                FoodstuffId = Guid("cbd25042-ef0b-467f-8dfd-4ff70c2e5824") // Chicken breasts	
+            };
+            {
+                Value = Some 4.0
+                Unit = Some "cups"
+                FoodstuffId = Guid("7dc3db3c-8422-473d-8344-2f8653157581") // Parmesan cheese	
+            }
+        ]
+        [
+            "chicken";
+            "breasts";
+            "parmesan";
+            "cheese";
         ]
         
     // Section with https://www.allrecipes.com/recipe/90105/butter-chickpea-curry/
