@@ -29,16 +29,16 @@ let showRecommendations recipes food2vecData foodstuffAmounts foodstuffWords =
     let statistics = TfIdfCosineSimilarityStructuredData.computeStatistics recipes
     let foodstuffIds = foodstuffAmounts |> List.map (fun a -> a.FoodstuffId)
     
-    let (firstMethodRecommendations, firstMs) = profilePerformance (fun () ->
+    let (jacccardResults, jaccardResultsMs) = profilePerformance (fun () ->
         JaccardSimilarity.recommend recipes foodstuffIds |> Seq.take 10 |> Seq.toList)
     
-    let (secondMethodRecommendations, secondMs) = profilePerformance (fun () ->
+    let (plainTfIdfResults, plainTfIdfResultsMs) = profilePerformance (fun () ->
         TfIdfCosineSimilarityStructuredData.recommend statistics foodstuffAmounts |> Seq.take 10 |> Seq.map (fun i -> i.Recipe) |> Seq.toList)
     
-    let (thirdMethodRecommendations, thirdMs) = profilePerformance (fun () ->
+    let (textTfIdfResults, textTfIdfResultsMs) = profilePerformance (fun () ->
         TfIdfCosineSimilarityTextData.recommend recipes foodstuffWords |> Seq.take 10 |> Seq.toList)
     
-    let (fourthMethodRecommendations, fourthMs) = profilePerformance (fun () ->
+    let (calibratedTfIdfResults, calibratedTfIdfResultsMs) = profilePerformance (fun () ->
         Calibration.postProcess
             (fun rs amounts -> TfIdfCosineSimilarityStructuredData.recommend (TfIdfCosineSimilarityStructuredData.computeStatistics rs) amounts |> Seq.map (fun i -> i.Recipe))
             recipes
@@ -46,28 +46,28 @@ let showRecommendations recipes food2vecData foodstuffAmounts foodstuffWords =
             3
             10)
     
-    let (fifthMethodRecommendations, fifthMs) = profilePerformance (fun () ->
+    let (diversifiedTfIdfResults, diversifiedTfIdfResultsMs) = profilePerformance (fun () ->
         let infos = TfIdfCosineSimilarityStructuredData.recommend statistics foodstuffAmounts
         Diversity.postProcess infos (TfIdfCosineSimilarityStructuredData.recipeSimilarity statistics) 10)
     
-    let (sixthMethodRecommendations, sixthMs) = profilePerformance (fun () ->
+    let (plainWordToVecResults, plainWordToVecResultsMs) = profilePerformance (fun () ->
         FoodToVector.recommend food2vecData recipes (toInfoLessAmounts foodstuffIds) TfIdfCosineSimilarityStructuredData.termFrequency |> Seq.take 10 |> Seq.toList)
     
-    let (seventhMethodRecommendations, seventhMs) = profilePerformance (fun () ->
+    let (tfWeightedWordToVecResults, tfWeightedWordToVecResultsMs) = profilePerformance (fun () ->
         FoodToVector.recommend food2vecData recipes foodstuffAmounts TfIdfCosineSimilarityStructuredData.termFrequency |> Seq.take 10 |> Seq.toList)
     
-    let (eightMethodRecommendations, eightMs) = profilePerformance (fun () ->
+    let (tfIdfWeightedWordToVecResults, tfIdfWeightedWordToVecResultsMs) = profilePerformance (fun () ->
         FoodToVector.recommend food2vecData recipes foodstuffAmounts ((TfIdfCosineSimilarityStructuredData.tfIdf statistics) >> second) |> Seq.take 10 |> Seq.toList)
     
     let allRecipes = List.concat [
-        firstMethodRecommendations;
-        secondMethodRecommendations;
-        thirdMethodRecommendations;
-        fourthMethodRecommendations;
-        fifthMethodRecommendations;
-        sixthMethodRecommendations;
-        seventhMethodRecommendations;
-        eightMethodRecommendations;
+        jacccardResults;
+        plainTfIdfResults;
+        textTfIdfResults;
+        calibratedTfIdfResults;
+        diversifiedTfIdfResults;
+        plainWordToVecResults;
+        tfWeightedWordToVecResults;
+        tfIdfWeightedWordToVecResults;
     ]
     
     let counts =
@@ -101,14 +101,14 @@ let showRecommendations recipes food2vecData foodstuffAmounts foodstuffWords =
         printfn "Recipe: %s; Count: %i <br>" recipe count
     printfn ""
     
-    printMethod "Jaccard" firstMethodRecommendations firstMs (fun i -> List.exists (fun id -> id = i.Amount.FoodstuffId) foodstuffIds |> Binary)
-    printMethod "TF-IDF with structured data" secondMethodRecommendations secondMs (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) foodstuffAmounts |> Binary)
-    printMethod "TF-IDF with text data" thirdMethodRecommendations thirdMs (fun i -> List.exists (fun (t: string) -> i.DisplayLine.ToLowerInvariant().Contains(t)) foodstuffWords |> Binary)
-    printMethod "TF-IDF with structured data (Iterative)" fourthMethodRecommendations fourthMs (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) foodstuffAmounts |> Binary)
-    printMethod "TF-IDF with structured data (MMR)" fifthMethodRecommendations fifthMs (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) foodstuffAmounts |> Binary)
-    printMethod "Food2Vec (mean)" sixthMethodRecommendations sixthMs ((findMaxSimilarity foodstuffIds) >> Distance)
-    printMethod "Food2Vec (TF weighted mean)" seventhMethodRecommendations seventhMs ((findMaxSimilarity foodstuffIds) >> Distance)
-    printMethod "Food2Vec (TF-IDF weighted mean)" eightMethodRecommendations eightMs ((findMaxSimilarity foodstuffIds) >> Distance)
+    printMethod "Jaccard" jacccardResults jaccardResultsMs (fun i -> List.exists (fun id -> id = i.Amount.FoodstuffId) foodstuffIds |> Binary)
+    printMethod "TF-IDF with structured data" plainTfIdfResults plainTfIdfResultsMs (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) foodstuffAmounts |> Binary)
+    printMethod "TF-IDF with text data" textTfIdfResults textTfIdfResultsMs (fun i -> List.exists (fun (t: string) -> i.DisplayLine.ToLowerInvariant().Contains(t)) foodstuffWords |> Binary)
+    printMethod "TF-IDF with structured data (Iterative)" calibratedTfIdfResults calibratedTfIdfResultsMs (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) foodstuffAmounts |> Binary)
+    printMethod "TF-IDF with structured data (MMR)" diversifiedTfIdfResults diversifiedTfIdfResultsMs (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) foodstuffAmounts |> Binary)
+    printMethod "Food2Vec (mean)" plainWordToVecResults plainWordToVecResultsMs ((findMaxSimilarity foodstuffIds) >> Distance)
+    printMethod "Food2Vec (TF weighted mean)" tfWeightedWordToVecResults tfWeightedWordToVecResultsMs ((findMaxSimilarity foodstuffIds) >> Distance)
+    printMethod "Food2Vec (TF-IDF weighted mean)" tfIdfWeightedWordToVecResults tfIdfWeightedWordToVecResultsMs ((findMaxSimilarity foodstuffIds) >> Distance)
     
     printfn "</div>"
     printfn "<div style=\"clear: both;\"></div>"
