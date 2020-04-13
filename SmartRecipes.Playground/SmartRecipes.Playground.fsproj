@@ -9,9 +9,9 @@
     <Compile Include="DataStore.fs" />
     <Compile Include="JaccardSimilarity.fs" />
     <Compile Include="TfIdfCosineSimilarityStructuredData.fs" />
-    <Compile Include="TfIdfCosineSimilarityStructuredDataWithDynamicAmountAltering.fs" />
-    <Compile Include="TfIdfCosineSimilarityStructuredDataWithDiversity.fs" />
     <Compile Include="TfIdfCosineSimilarityTextData.fs" />
+    <Compile Include="Calibration.fs" />
+    <Compile Include="Diversity.fs" />
     <Compile Include="FoodToVector.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

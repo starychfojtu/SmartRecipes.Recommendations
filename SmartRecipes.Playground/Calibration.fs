@@ -1,4 +1,4 @@
-module SmartRecipes.Playground.TfIdfCosineSimilarityStructuredDataWithDynamicAmountAltering
+module SmartRecipes.Playground.Calibration
 
 open SmartRecipes.Playground.Model
 

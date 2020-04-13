@@ -33,21 +33,22 @@ let showRecommendations recipes food2vecData foodstuffAmounts foodstuffWords =
         JaccardSimilarity.recommend recipes foodstuffIds |> Seq.take 10 |> Seq.toList)
     
     let (secondMethodRecommendations, secondMs) = profilePerformance (fun () ->
-        TfIdfCosineSimilarityStructuredData.recommend statistics foodstuffAmounts |> Seq.take 10 |> Seq.toList)
+        TfIdfCosineSimilarityStructuredData.recommend statistics foodstuffAmounts |> Seq.take 10 |> Seq.map (fun i -> i.Recipe) |> Seq.toList)
     
     let (thirdMethodRecommendations, thirdMs) = profilePerformance (fun () ->
         TfIdfCosineSimilarityTextData.recommend recipes foodstuffWords |> Seq.take 10 |> Seq.toList)
     
     let (fourthMethodRecommendations, fourthMs) = profilePerformance (fun () ->
-        TfIdfCosineSimilarityStructuredDataWithDynamicAmountAltering.postProcess
-            (fun rs -> TfIdfCosineSimilarityStructuredData.recommend (TfIdfCosineSimilarityStructuredData.computeStatistics rs))
+        Calibration.postProcess
+            (fun rs amounts -> TfIdfCosineSimilarityStructuredData.recommend (TfIdfCosineSimilarityStructuredData.computeStatistics rs) amounts |> Seq.map (fun i -> i.Recipe))
             recipes
             foodstuffAmounts
             3
             10)
     
     let (fifthMethodRecommendations, fifthMs) = profilePerformance (fun () ->
-        TfIdfCosineSimilarityStructuredDataWithDiversity.recommend statistics recipes foodstuffAmounts 10)
+        let infos = TfIdfCosineSimilarityStructuredData.recommend statistics foodstuffAmounts
+        Diversity.postProcess infos (TfIdfCosineSimilarityStructuredData.recipeSimilarity statistics) 10)
     
     let (sixthMethodRecommendations, sixthMs) = profilePerformance (fun () ->
         FoodToVector.recommend food2vecData recipes (toInfoLessAmounts foodstuffIds) TfIdfCosineSimilarityStructuredData.termFrequency |> Seq.take 10 |> Seq.toList)

@@ -32,3 +32,8 @@ type Recipe = {
     Tags: string list
     Ingredients: Ingredient list
 }
+
+type RecipeInfo = {
+    Recipe: Recipe
+    InputSimilarity: float
+}
