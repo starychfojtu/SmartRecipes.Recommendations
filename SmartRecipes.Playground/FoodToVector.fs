@@ -79,10 +79,14 @@ module Data =
          |> Seq.map parseLine
          |> Map.ofSeq
 
-let recommend foodstuffVectors weight recipes foodstuffAmounts =
+let recommend foodstuffVectors weight inverseIndex foodstuffAmounts =
     let inputVector = vectorize foodstuffVectors weight foodstuffAmounts
+    let relevantRecipes =
+        foodstuffAmounts
+        |> List.collect (fun a -> Map.find a.FoodstuffId inverseIndex)
+        |> List.distinctBy (fun r -> r.Id)
     
-    recipes
+    relevantRecipes
     |> List.map (fun (r: Recipe) ->
         let vector = vectorizeRecipe foodstuffVectors weight r
         let distance = cosineSimilarity vector inputVector

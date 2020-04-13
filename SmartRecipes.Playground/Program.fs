@@ -61,19 +61,20 @@ let showRecommendations recipes food2vecData foodstuffAmounts foodstuffWords =
             10)
     
     let (plainWordToVecResults, plainWordToVecResultsMs) = profilePerformance (fun () ->
-        FoodToVector.recommend food2vecData TfIdfCosineSimilarityStructuredData.termFrequency recipes (toInfoLessAmounts foodstuffIds) |> Seq.take 10 |> Seq.map (fun i -> i.Recipe) |> Seq.toList)
+        FoodToVector.recommend food2vecData TfIdfCosineSimilarityStructuredData.termFrequency statistics.InverseIndex (toInfoLessAmounts foodstuffIds) |> Seq.take 10 |> Seq.map (fun i -> i.Recipe) |> Seq.toList)
     
     let (tfWeightedWordToVecResults, tfWeightedWordToVecResultsMs) = profilePerformance (fun () ->
-        FoodToVector.recommend food2vecData TfIdfCosineSimilarityStructuredData.termFrequency recipes foodstuffAmounts |> Seq.take 10 |> Seq.map (fun i -> i.Recipe) |> Seq.toList)
+        FoodToVector.recommend food2vecData TfIdfCosineSimilarityStructuredData.termFrequency statistics.InverseIndex foodstuffAmounts |> Seq.take 10 |> Seq.map (fun i -> i.Recipe) |> Seq.toList)
     
     let (tfIdfWeightedWordToVecResults, tfIdfWeightedWordToVecResultsMs) = profilePerformance (fun () ->
-        FoodToVector.recommend food2vecData ((TfIdfCosineSimilarityStructuredData.tfIdf statistics) >> second) recipes foodstuffAmounts |> Seq.take 10 |> Seq.map (fun i -> i.Recipe) |> Seq.toList)
+        FoodToVector.recommend food2vecData ((TfIdfCosineSimilarityStructuredData.tfIdf statistics) >> second) statistics.InverseIndex foodstuffAmounts |> Seq.take 10 |> Seq.map (fun i -> i.Recipe) |> Seq.toList)
     
     let (calibratedAndDiversifiedTfIdfWeightedWordToVecResults, calibratedAndDiversifiedTfIdfWeightedWordToVecResultsMs) = profilePerformance (fun () ->
         Calibration.postProcess
             (fun rs amounts ->
-                let weight = (TfIdfCosineSimilarityStructuredData.tfIdf statistics) >> second
-                let infos = FoodToVector.recommend food2vecData weight rs amounts
+                let stats = TfIdfCosineSimilarityStructuredData.computeStatistics rs
+                let weight = (TfIdfCosineSimilarityStructuredData.tfIdf stats) >> second
+                let infos = FoodToVector.recommend food2vecData weight stats.InverseIndex amounts
                 Diversity.postProcess infos (FoodToVector.recipeSimilarity food2vecData weight) 10)
             recipes
             foodstuffAmounts
@@ -138,7 +139,7 @@ let showRecommendations recipes food2vecData foodstuffAmounts foodstuffWords =
     printfn "<div style=\"clear: both;\"></div>"
 
 let printHeader () =
-    printfn "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>SmartRecipes recommendations</title></head><body style=\"width: 5000px\">"
+    printfn "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>SmartRecipes recommendations</title></head><body style=\"width: 6000px\">"
     
 let printFooter () =
     printfn "</body></html>"
