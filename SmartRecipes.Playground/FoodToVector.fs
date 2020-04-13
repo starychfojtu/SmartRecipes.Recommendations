@@ -39,10 +39,18 @@ type WeightedFoodstuff = {
     Weight: float
 }
 
-let vectorize foodstuffVectors weightedFoodstuffs =
-    weightedFoodstuffs
-    |> List.map (fun f -> { Vector = Map.find f.FoodstuffId foodstuffVectors; Weight = f.Weight })
+let vectorize foodstuffVectors weight foodstuffAmounts  =
+    foodstuffAmounts
+    |> List.map (fun (a: FoodstuffAmount) -> { Vector = Map.find a.FoodstuffId foodstuffVectors; Weight = weight a })
     |> mean
+    
+let vectorizeRecipe foodstuffVectors weight r =
+    let foodstuffAmounts = r.Ingredients |> List.map (fun i -> i.Amount)
+    vectorize foodstuffVectors weight foodstuffAmounts
+    
+let recipeSimilarity foodstuffVectors weight r1 r2 =
+    let toVector = vectorizeRecipe foodstuffVectors weight
+    cosineSimilarity (toVector r1) (toVector r2)
     
 module Data =
     let readLines (filePath : string) =
@@ -71,17 +79,13 @@ module Data =
          |> Seq.map parseLine
          |> Map.ofSeq
 
-let recommend foodstuffVectors recipes foodstuffAmounts weight =
-    let amountsToWeightedFoodstuffs = List.map (fun (a: FoodstuffAmount) -> { FoodstuffId = a.FoodstuffId; Weight = weight a })
-    let weightedFoodstuffs = amountsToWeightedFoodstuffs foodstuffAmounts
-    let inputVector = vectorize foodstuffVectors weightedFoodstuffs
+let recommend foodstuffVectors weight recipes foodstuffAmounts =
+    let inputVector = vectorize foodstuffVectors weight foodstuffAmounts
     
     recipes
     |> List.map (fun (r: Recipe) ->
-        let foodstuffAmounts = r.Ingredients |> List.map (fun i -> i.Amount)
-        let vector = vectorize foodstuffVectors (amountsToWeightedFoodstuffs foodstuffAmounts)
+        let vector = vectorizeRecipe foodstuffVectors weight r
         let distance = cosineSimilarity vector inputVector
-        (r, vector, distance)
+        { Recipe = r; InputSimilarity = distance }
     )
-    |> List.sortByDescending (fun (_, _, distance) -> distance)
-    |> List.map (fun (r, _, _) -> r)
+    |> List.sortByDescending (fun i -> i.InputSimilarity)

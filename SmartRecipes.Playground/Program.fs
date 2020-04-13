@@ -61,13 +61,24 @@ let showRecommendations recipes food2vecData foodstuffAmounts foodstuffWords =
             10)
     
     let (plainWordToVecResults, plainWordToVecResultsMs) = profilePerformance (fun () ->
-        FoodToVector.recommend food2vecData recipes (toInfoLessAmounts foodstuffIds) TfIdfCosineSimilarityStructuredData.termFrequency |> Seq.take 10 |> Seq.toList)
+        FoodToVector.recommend food2vecData TfIdfCosineSimilarityStructuredData.termFrequency recipes (toInfoLessAmounts foodstuffIds) |> Seq.take 10 |> Seq.map (fun i -> i.Recipe) |> Seq.toList)
     
     let (tfWeightedWordToVecResults, tfWeightedWordToVecResultsMs) = profilePerformance (fun () ->
-        FoodToVector.recommend food2vecData recipes foodstuffAmounts TfIdfCosineSimilarityStructuredData.termFrequency |> Seq.take 10 |> Seq.toList)
+        FoodToVector.recommend food2vecData TfIdfCosineSimilarityStructuredData.termFrequency recipes foodstuffAmounts |> Seq.take 10 |> Seq.map (fun i -> i.Recipe) |> Seq.toList)
     
     let (tfIdfWeightedWordToVecResults, tfIdfWeightedWordToVecResultsMs) = profilePerformance (fun () ->
-        FoodToVector.recommend food2vecData recipes foodstuffAmounts ((TfIdfCosineSimilarityStructuredData.tfIdf statistics) >> second) |> Seq.take 10 |> Seq.toList)
+        FoodToVector.recommend food2vecData ((TfIdfCosineSimilarityStructuredData.tfIdf statistics) >> second) recipes foodstuffAmounts |> Seq.take 10 |> Seq.map (fun i -> i.Recipe) |> Seq.toList)
+    
+    let (calibratedAndDiversifiedTfIdfWeightedWordToVecResults, calibratedAndDiversifiedTfIdfWeightedWordToVecResultsMs) = profilePerformance (fun () ->
+        Calibration.postProcess
+            (fun rs amounts ->
+                let weight = (TfIdfCosineSimilarityStructuredData.tfIdf statistics) >> second
+                let infos = FoodToVector.recommend food2vecData weight rs amounts
+                Diversity.postProcess infos (FoodToVector.recipeSimilarity food2vecData weight) 10)
+            recipes
+            foodstuffAmounts
+            3
+            10)
     
     let allRecipes = List.concat [
         jacccardResults;
@@ -78,6 +89,7 @@ let showRecommendations recipes food2vecData foodstuffAmounts foodstuffWords =
         plainWordToVecResults;
         tfWeightedWordToVecResults;
         tfIdfWeightedWordToVecResults;
+        calibratedAndDiversifiedTfIdfWeightedWordToVecResults;
     ]
     
     let counts =
@@ -120,6 +132,7 @@ let showRecommendations recipes food2vecData foodstuffAmounts foodstuffWords =
     printMethod "Food2Vec (mean)" plainWordToVecResults plainWordToVecResultsMs ((findMaxSimilarity foodstuffIds) >> Distance)
     printMethod "Food2Vec (TF weighted mean)" tfWeightedWordToVecResults tfWeightedWordToVecResultsMs ((findMaxSimilarity foodstuffIds) >> Distance)
     printMethod "Food2Vec (TF-IDF weighted mean)" tfIdfWeightedWordToVecResults tfIdfWeightedWordToVecResultsMs ((findMaxSimilarity foodstuffIds) >> Distance)
+    printMethod "Food2Vec (TF-IDF weighted mean, MMR + Calibration)" calibratedAndDiversifiedTfIdfWeightedWordToVecResults calibratedAndDiversifiedTfIdfWeightedWordToVecResultsMs ((findMaxSimilarity foodstuffIds) >> Distance)
     
     printfn "</div>"
     printfn "<div style=\"clear: both;\"></div>"
@@ -298,7 +311,6 @@ let main argv =
             "masala";
         ]
 
-    // TODO: polish this, it really must be representative
     run
         @"
             Case 5: Simulating real shopping list when shopping.
@@ -307,7 +319,6 @@ let main argv =
                 - carrots (5 pieces)
                 - tomatoes (5 pieces)
                 - yogurt (3 pieces)
-                - potatoes (3 pounds)
                 - bell peppers (3 pounds)
         "
         [
@@ -333,11 +344,6 @@ let main argv =
             };
             {
                 Value = Some 3.0
-                Unit = Some "pound"
-                FoodstuffId = Guid("04c7dad3-657b-4fb6-8df9-a4cc3fb30408") // Potato
-            };
-            {
-                Value = Some 3.0
                 Unit = Some "pieces"
                 FoodstuffId = Guid("27b43955-3361-48a1-b16f-9d339c808b20") // Bell peppers
             }
@@ -350,7 +356,6 @@ let main argv =
             "cheddar";
             "cheese";
             "yogurt";
-            "potato";
             "bell";
             "peppers"
         ]
