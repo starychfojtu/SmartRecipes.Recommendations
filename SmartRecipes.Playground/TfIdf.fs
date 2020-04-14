@@ -1,4 +1,4 @@
-module SmartRecipes.Playground.TfIdfCosineSimilarityStructuredData
+module SmartRecipes.Playground.TfIdf
 
 open System
 open SmartRecipes.Playground

@@ -35,7 +35,7 @@ let rec getRecommendations lambda similarity results candidates n =
                 else getRecommendations lambda similarity newResults (List.except [nextBest] candidates) n
 
 let postProcess recipeInfos similarity n =
-    let lambda = 0.6 // accuracy vs diversity ratio (the higher the better for accuracy)
+    let lambda = 0.5 // accuracy vs diversity ratio (the higher the better for accuracy)
     let recipeInfoCandidates =
         recipeInfos
         |> Seq.sortByDescending (fun i -> i.InputSimilarity)

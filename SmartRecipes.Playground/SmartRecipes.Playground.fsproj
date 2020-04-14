@@ -8,8 +8,8 @@
     <Compile Include="Model.fs" />
     <Compile Include="DataStore.fs" />
     <Compile Include="JaccardSimilarity.fs" />
-    <Compile Include="TfIdfCosineSimilarityStructuredData.fs" />
-    <Compile Include="TfIdfCosineSimilarityTextData.fs" />
+    <Compile Include="TfIdf.fs" />
+    <Compile Include="TextTfIdf.fs" />
     <Compile Include="Calibration.fs" />
     <Compile Include="Diversity.fs" />
     <Compile Include="FoodToVector.fs" />

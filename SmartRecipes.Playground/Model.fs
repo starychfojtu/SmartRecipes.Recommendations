@@ -31,6 +31,7 @@ type Recipe = {
     Rating: int
     Tags: string list
     Ingredients: Ingredient list
+    IngredientByFoodstuffId: Map<Guid, Ingredient>
 }
 
 type RecipeInfo = {
