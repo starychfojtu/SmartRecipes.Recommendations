@@ -56,6 +56,7 @@ let getRecipes () =
             let cookingTime = Sql.readString "cookingtime" row
             let difficulty = Sql.readString "difficulty" row
             let! rating = Sql.readInt "rating" row
+            let ingredients = Map.find id ingredients
             return {
                 Id = id;
                 Name = name;
@@ -67,6 +68,7 @@ let getRecipes () =
                 CookingTime = cookingTime;
                 Rating = rating;
                 Tags = [];
-                Ingredients = Map.find id ingredients;
+                Ingredients = ingredients;
+                IngredientByFoodstuffId = ingredients |> List.map (fun i -> (i.Amount.FoodstuffId, i)) |> Map.ofList
             }
         })

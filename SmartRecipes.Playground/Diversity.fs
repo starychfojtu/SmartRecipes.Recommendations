@@ -43,5 +43,4 @@ let postProcess recipeInfos similarity n =
         |> Seq.toList
     
     getRecommendations lambda similarity List.empty recipeInfoCandidates n
-    |> List.map (fun r -> r.Recipe)
             

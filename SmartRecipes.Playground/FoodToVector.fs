@@ -78,6 +78,11 @@ module Data =
          readLines file
          |> Seq.map parseLine
          |> Map.ofSeq
+         
+type Word2VecRecipeInfo = {
+    Info: RecipeInfo
+    Vector: float[]
+}
 
 let recommend foodstuffVectors weight inverseIndex foodstuffAmounts =
     let inputVector = vectorize foodstuffVectors weight foodstuffAmounts
@@ -90,6 +95,6 @@ let recommend foodstuffVectors weight inverseIndex foodstuffAmounts =
     |> List.map (fun (r: Recipe) ->
         let vector = vectorizeRecipe foodstuffVectors weight r
         let distance = cosineSimilarity vector inputVector
-        { Recipe = r; InputSimilarity = distance }
+        { Info = { Recipe = r; InputSimilarity = distance }; Vector = vector }
     )
-    |> List.sortByDescending (fun i -> i.InputSimilarity)
+    |> List.sortByDescending (fun i -> i.Info.InputSimilarity)

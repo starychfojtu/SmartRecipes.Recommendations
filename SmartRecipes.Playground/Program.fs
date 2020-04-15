@@ -3,6 +3,7 @@ open SmartRecipes.Playground
 open SmartRecipes.Playground.FoodToVector
 open SmartRecipes.Playground.Model
 open System
+open Calibration
 
 type IngredientMatchResult =
     | Binary of bool
@@ -48,34 +49,34 @@ let showRecommendations recipes food2vecData32 food2vecData256 foodstuffAmounts 
     
     let (diversifiedTfIdfResults, diversifiedTfIdfResultsMs) = profilePerformance (fun () ->
         let infos = TfIdf.recommend statistics foodstuffAmounts
-        Diversity.postProcess infos (TfIdf.recipeSimilarity statistics) 10)
+        Diversity.postProcess infos (TfIdf.recipeSimilarity statistics) 10 |> List.map (fun r -> r.Recipe))
     
     let (calibratedAndDiversifiedTfIdfResults, calibratedAndDiversifiedTfIdfResultsMs) = profilePerformance (fun () ->
         Calibration.postProcess
             (fun rs amounts ->
                 let infos = TfIdf.recommend (TfIdf.computeStatistics rs) amounts
-                Diversity.postProcess infos (TfIdf.recipeSimilarity statistics) 10)
+                Diversity.postProcess infos (TfIdf.recipeSimilarity statistics) 10 |> List.map (fun r -> r.Recipe))
             recipes
             foodstuffAmounts
             3
             10)
     
     let (plainWordToVecResults, plainWordToVecResultsMs) = profilePerformance (fun () ->
-        FoodToVector.recommend food2vecData256 TfIdf.termFrequency statistics.InverseIndex (toInfoLessAmounts foodstuffIds) |> Seq.take 10 |> Seq.map (fun i -> i.Recipe) |> Seq.toList)
+        FoodToVector.recommend food2vecData256 TfIdf.termFrequency statistics.InverseIndex (toInfoLessAmounts foodstuffIds) |> Seq.take 10 |> Seq.map (fun i -> i.Info.Recipe) |> Seq.toList)
     
     let (tfWeightedWordToVecResults, tfWeightedWordToVecResultsMs) = profilePerformance (fun () ->
-        FoodToVector.recommend food2vecData256 TfIdf.termFrequency statistics.InverseIndex foodstuffAmounts |> Seq.take 10 |> Seq.map (fun i -> i.Recipe) |> Seq.toList)
+        FoodToVector.recommend food2vecData256 TfIdf.termFrequency statistics.InverseIndex foodstuffAmounts |> Seq.take 10 |> Seq.map (fun i -> i.Info.Recipe) |> Seq.toList)
     
     let (tfIdfWeightedWordToVecResults, tfIdfWeightedWordToVecResultsMs) = profilePerformance (fun () ->
-        FoodToVector.recommend food2vecData256 ((TfIdf.tfIdf statistics) >> second) statistics.InverseIndex foodstuffAmounts |> Seq.take 10 |> Seq.map (fun i -> i.Recipe) |> Seq.toList)
+        FoodToVector.recommend food2vecData256 ((TfIdf.tfIdf statistics) >> second) statistics.InverseIndex foodstuffAmounts |> Seq.take 10 |> Seq.map (fun i -> i.Info.Recipe) |> Seq.toList)
     
     let (calibratedAndDiversifiedTfIdfWeightedWordToVec256Results, calibratedAndDiversifiedTfIdfWeightedWordToVec256ResultsMs) = profilePerformance (fun () ->
         Calibration.postProcess
             (fun rs amounts ->
                 let stats = TfIdf.computeStatistics rs
                 let weight = (TfIdf.tfIdf stats) >> second
-                let infos = FoodToVector.recommend food2vecData256 weight stats.InverseIndex amounts
-                Diversity.postProcess infos (FoodToVector.recipeSimilarity food2vecData256 weight) 10)
+                let infos = FoodToVector.recommend food2vecData256 weight stats.InverseIndex amounts |> List.map (fun i -> i.Info)
+                Diversity.postProcess infos (FoodToVector.recipeSimilarity food2vecData256 weight) 10 |> List.map (fun r -> r.Recipe))
             recipes
             foodstuffAmounts
             3
@@ -86,12 +87,25 @@ let showRecommendations recipes food2vecData32 food2vecData256 foodstuffAmounts 
             (fun rs amounts ->
                 let stats = TfIdf.computeStatistics rs
                 let weight = (TfIdf.tfIdf stats) >> second
-                let infos = FoodToVector.recommend food2vecData32 weight stats.InverseIndex amounts
-                Diversity.postProcess infos (FoodToVector.recipeSimilarity food2vecData32 weight) 10)
+                let infos = FoodToVector.recommend food2vecData32 weight stats.InverseIndex amounts |> List.map (fun i -> i.Info)
+                Diversity.postProcess infos (FoodToVector.recipeSimilarity food2vecData32 weight) 10 |> List.map (fun r -> r.Recipe))
             recipes
             foodstuffAmounts
             3
             10)
+    
+    let (calibratedWithElectionTfIdfWeightedWordToVec256Results, calibratedWithElectionTfIdfWeightedWordToVec256ResultsMs) = profilePerformance (fun () ->
+        let weight = (TfIdf.tfIdf statistics) >> second
+        let infos = FoodToVector.recommend food2vecData256 weight statistics.InverseIndex foodstuffAmounts
+        let recipes = infos |> List.map (fun i -> i.Info.Recipe)
+        let recipeVectors = infos |> List.map (fun i -> (i.Info.Recipe.Id, i.Vector)) |> Map.ofList
+        let similarity foodstuffAmountInfos recipe =
+            let weightsByFoodstuffAmount = foodstuffAmountInfos |> List.map (fun i -> (i.Amount.FoodstuffId, i.Weight)) |> Map.ofList
+            let queryVector = vectorize food2vecData256 (fun a -> Map.find a.FoodstuffId weightsByFoodstuffAmount) foodstuffAmounts
+            let recipeVector = Map.find recipe.Id recipeVectors
+            cosineSimilarity queryVector recipeVector
+            
+        Calibration.calibrate similarity weight recipes foodstuffAmounts 10)
     
     let allRecipes = List.concat [
         jacccardResults;
@@ -103,6 +117,7 @@ let showRecommendations recipes food2vecData32 food2vecData256 foodstuffAmounts 
         tfWeightedWordToVecResults;
         tfIdfWeightedWordToVecResults;
         calibratedAndDiversifiedTfIdfWeightedWordToVec256Results;
+        calibratedWithElectionTfIdfWeightedWordToVec256Results;
         calibratedAndDiversifiedTfIdfWeightedWordToVec32Results;
     ]
     
@@ -112,7 +127,7 @@ let showRecommendations recipes food2vecData32 food2vecData256 foodstuffAmounts 
         |> List.map (fun (name, recipes) -> (name, Seq.length recipes))
         |> List.sortByDescending second
         
-    let findMaxSimilarity foodstuffIds ingredient =
+    let findMaxSimilarity foodstuffIds (ingredient: Ingredient) =
         let toVector fId = Map.find fId food2vecData256
         let ingredientVector = toVector ingredient.Amount.FoodstuffId
         foodstuffIds
@@ -147,6 +162,7 @@ let showRecommendations recipes food2vecData32 food2vecData256 foodstuffAmounts 
     printMethod "Food2Vec 256/10 (TF weighted mean)" tfWeightedWordToVecResults tfWeightedWordToVecResultsMs ((findMaxSimilarity foodstuffIds) >> Distance)
     printMethod "Food2Vec 256/10 (TF-IDF weighted mean)" tfIdfWeightedWordToVecResults tfIdfWeightedWordToVecResultsMs ((findMaxSimilarity foodstuffIds) >> Distance)
     printMethod "Food2Vec 256/10 (TF-IDF weighted mean, MMR + Calibration)" calibratedAndDiversifiedTfIdfWeightedWordToVec256Results calibratedAndDiversifiedTfIdfWeightedWordToVec256ResultsMs ((findMaxSimilarity foodstuffIds) >> Distance)
+    printMethod "Food2Vec 256/10 (TF-IDF weighted mean, MMR + Election Calibration)" calibratedWithElectionTfIdfWeightedWordToVec256Results calibratedWithElectionTfIdfWeightedWordToVec256ResultsMs ((findMaxSimilarity foodstuffIds) >> Distance)
     printMethod "Food2Vec 32/8 (TF-IDF weighted mean, MMR + Calibration)" calibratedAndDiversifiedTfIdfWeightedWordToVec32Results calibratedAndDiversifiedTfIdfWeightedWordToVec32ResultsMs ((findMaxSimilarity foodstuffIds) >> Distance)
     
     printfn "</div>"

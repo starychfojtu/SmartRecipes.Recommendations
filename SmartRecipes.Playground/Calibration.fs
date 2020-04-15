@@ -35,60 +35,44 @@ let postProcess recommend recipes foodstuffAmounts step n =
 
 type FoodstuffAmountInfo = {
     Amount: FoodstuffAmount
-    VoteNumber: float
-    VoteNumberModifier: float
-}
+    InitialWeight: float
+    WeightModifier: float
+} with
+    member this.Weight = this.InitialWeight / this.WeightModifier
 
-let relevance recipeInfo foodstuffAmount =
-    let ingredient = Map.tryFind foodstuffAmount.FoodstuffId recipeInfo.Recipe.IngredientByFoodstuffId
-    let foodstuffRelevance =
-        ingredient
-        |> Option.map (fun i -> TfIdf.termFrequency i.Amount)
-        |> Option.defaultValue 0.0
-        
-    foodstuffRelevance * recipeInfo.InputSimilarity
-
-let relevanceSum foodstuffInfos recipeInfo  =
-    foodstuffInfos
-    |> List.map (fun i -> i.VoteNumber * (relevance recipeInfo i.Amount))
-    |> List.sum
-
-let pickBest recipeInfos foodstuffAmounts =
-    recipeInfos
-    |> List.maxBy (relevanceSum foodstuffAmounts)
+let relevance recipe foodstuffAmount =
+    let ingredient = Map.tryFind foodstuffAmount.FoodstuffId recipe.IngredientByFoodstuffId
+    ingredient
+    |> Option.map (fun i -> TfIdf.termFrequency i.Amount)
+    |> Option.defaultValue 0.0
     
 let adjustInfo bestRecipe info =
-    let newVoteNumberModifier = info.VoteNumberModifier + (relevance bestRecipe info.Amount)
     {
         Amount = info.Amount
-        VoteNumber = info.VoteNumber / newVoteNumberModifier
-        VoteNumberModifier = newVoteNumberModifier
+        InitialWeight = info.InitialWeight
+        WeightModifier = info.WeightModifier + (relevance bestRecipe info.Amount)
     }
-    
-let calibrateOne recipeInfos foodstuffInfos =
-    let bestRecipeInfo = pickBest recipeInfos foodstuffInfos
-    let newFoodstuffInfos = foodstuffInfos |> List.map (adjustInfo bestRecipeInfo)
-    (bestRecipeInfo, newFoodstuffInfos)
 
-
-let calibrateStep (recipeInfos, foodstuffInfos, recommendations: RecipeInfo list) =
-    let (bestRecipeInfo, newFoodstuffInfos) = calibrateOne recipeInfos foodstuffInfos
-    let newRecipeInfos = List.except [bestRecipeInfo] recipeInfos
-    (newRecipeInfos, newFoodstuffInfos, bestRecipeInfo::recommendations)
+let calibrateStep similarity (recipes, foodstuffInfos, recommendations: Recipe list) =
+    let bestRecipe = recipes |> List.maxBy (similarity foodstuffInfos) 
+    let newFoodstuffInfos = foodstuffInfos |> List.map (adjustInfo bestRecipe)
+    let newRecipeInfos = List.except [bestRecipe] recipes
+    (newRecipeInfos, newFoodstuffInfos, bestRecipe::recommendations)
     
-let toInitialInfo amount =
+let toInitialInfo weight amount =
     {
         Amount = amount
-        VoteNumber = TfIdf.termFrequency amount
-        VoteNumberModifier = 1.0
+        InitialWeight = weight amount
+        WeightModifier = 1.0
     }
     
-let calibrate recipeInfos foodstuffAmounts n =
-    let initialFoodstuffInfos = foodstuffAmounts |> List.map toInitialInfo
-    let initialState = (recipeInfos, initialFoodstuffInfos, [])
+let calibrate similarity weight recipes foodstuffAmounts n =
+    let initialFoodstuffInfos = foodstuffAmounts |> List.map (toInitialInfo weight)
+    let initialState = (recipes, initialFoodstuffInfos, [])
     let (_, _, recommendations) = 
         Seq.replicate n ()
-        |> Seq.fold (fun state _ -> calibrateStep state) initialState
+        |> Seq.fold (fun state _ -> calibrateStep similarity state) initialState
         
     recommendations
     |> List.rev
+    
