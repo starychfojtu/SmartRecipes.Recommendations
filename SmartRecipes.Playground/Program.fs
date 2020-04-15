@@ -40,12 +40,8 @@ let showRecommendations recipes food2vecData32 food2vecData256 foodstuffAmounts 
         TextTfIdf.recommend recipes foodstuffWords |> Seq.take 10 |> Seq.toList)
     
     let (calibratedTfIdfResults, calibratedTfIdfResultsMs) = profilePerformance (fun () ->
-        Calibration.postProcess
-            (fun rs amounts -> TfIdf.recommend (TfIdf.computeStatistics rs) amounts |> Seq.map (fun i -> i.Recipe))
-            recipes
-            foodstuffAmounts
-            3
-            10)
+        // TODO: implement calibration.
+        TfIdf.recommend statistics foodstuffAmounts |> Seq.take 10 |> Seq.map (fun i -> i.Recipe) |> Seq.toList)
     
     let (diversifiedTfIdfResults, diversifiedTfIdfResultsMs) = profilePerformance (fun () ->
         let infos = TfIdf.recommend statistics foodstuffAmounts
@@ -284,7 +280,7 @@ let main argv =
                 - chicken breasts (1 pounds)
                 - parmesan cheese (2 cups)
                 - garam masala (1 cup)
-                - chickpea (1 pound)
+                - chickpea (2 cups)
         "
         [
             {
@@ -303,8 +299,8 @@ let main argv =
                 FoodstuffId = Guid("24b1b115-07e9-4d8f-b0a1-a38639654b7d") // Garam masala
             };
             {
-                Value = Some 4.0
-                Unit = Some "pound"
+                Value = Some 2.0
+                Unit = Some "cups"
                 FoodstuffId = Guid("b17a087c-dcd1-4bec-b481-00d2165fd18a") // Chickpeas
             }
         ]
