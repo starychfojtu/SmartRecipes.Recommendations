@@ -372,7 +372,7 @@ let main argv =
         @"
             Case 5.2: Simulating real shopping list when shopping (10 ingredients).
             User profile:
-                - Pork chops (2 pounds)
+                - Beef (2 pounds)
                 - Chicken breasts (2 pounds)
                 - Green bell peppers (3 pieces)
                 - Tomatoes (3 pieces)
@@ -387,7 +387,7 @@ let main argv =
             {
                 Value = Some 2.0
                 Unit = Some "pound"
-                FoodstuffId = Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241") // Pork chop
+                FoodstuffId = Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241") // Beef
             };
             {
                 Value = Some 2.0
@@ -436,8 +436,7 @@ let main argv =
             };
         ]
         [
-            "pork";
-            "chop";
+            "beef";
             "chicken";
             "breast";
             "bell";
