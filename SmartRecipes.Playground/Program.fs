@@ -324,7 +324,7 @@ let main argv =
 
     run
         @"
-            Case 5: Simulating real shopping list when shopping.
+            Case 5.1: Simulating real shopping list when shopping (5 ingredients).
             User profile:
                 - beef (4 pounds)
                 - carrots (5 pieces)
@@ -360,15 +360,97 @@ let main argv =
             }
         ]
         [
-            "pork";
-            "chop";
-            "chicken";
-            "thighs";
-            "cheddar";
-            "cheese";
+            "beef";
+            "carrots";
+            "tomatoes";
             "yogurt";
             "bell";
             "peppers"
+        ]
+        
+    run
+        @"
+            Case 5.2: Simulating real shopping list when shopping (10 ingredients).
+            User profile:
+                - Pork chops (2 pounds)
+                - Chicken breasts (2 pounds)
+                - Green bell peppers (3 pieces)
+                - Tomatoes (3 pieces)
+                - Pasta (2 pounds)
+                - Rice (1 pound)
+                - Cheddar cheese (0.5 pound)
+                - Heavy cream (2 cups)
+                - Carrots (3 pieces)
+                - Avocado (2 pieces)
+        "
+        [
+            {
+                Value = Some 2.0
+                Unit = Some "pound"
+                FoodstuffId = Guid("fa9a10a7-50ab-41ad-9b12-dfd1f9c4b241") // Pork chop
+            };
+            {
+                Value = Some 2.0
+                Unit = Some "pound"
+                FoodstuffId = Guid("cbd25042-ef0b-467f-8dfd-4ff70c2e5824") // Chicken breasts
+            };
+            {
+                Value = Some 3.0
+                Unit = Some "pieces"
+                FoodstuffId = Guid("c77e775b-d0c3-4ac2-8fe0-63e8a0f400a9") // Green bell pepper
+            };
+            {
+                Value = Some 3.0
+                Unit = Some "pieces"
+                FoodstuffId = Guid("241505a7-c6d7-4a7b-a913-aad0389c4606") // Tomatoes
+            };
+            {
+                Value = Some 2.0
+                Unit = Some "pounds"
+                FoodstuffId = Guid("1dd72985-3c83-4218-bdca-e74fe38e2a03") // Pasta
+            };
+            {
+                Value = Some 1.0
+                Unit = Some "pound"
+                FoodstuffId = Guid("1c5681bb-12af-4d53-b93b-a4e3f3b16893") // Rice
+            };
+            {
+                Value = Some 0.5
+                Unit = Some "pound"
+                FoodstuffId = Guid("20f8d6a5-77a9-44a2-a35c-5bfc5b431936") // Cheddar cheese
+            };
+            {
+                Value = Some 2.0
+                Unit = Some "cups"
+                FoodstuffId = Guid("c1d7cad4-2ded-46ff-b238-bfa24da78040") // Heavy cream
+            };
+            {
+                Value = Some 3.0
+                Unit = Some "pieces"
+                FoodstuffId = Guid("274f4bc5-63c8-4f46-aba1-a409b5e78dd4") // Carrots
+            };
+            {
+                Value = Some 2.0
+                Unit = Some "pieces"
+                FoodstuffId = Guid("7f95dc9e-1955-4fdb-a7c2-b9cef645ced8") // Avocado
+            };
+        ]
+        [
+            "pork";
+            "chop";
+            "chicken";
+            "breast";
+            "bell";
+            "pepper";
+            "tomatoes";
+            "pasta";
+            "rice";
+            "cheddar";
+            "cheese";
+            "heavy";
+            "cream";
+            "carrots";
+            "avocado";
         ]
         
     printFooter ()
