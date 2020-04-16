@@ -34,17 +34,25 @@ let showRecommendations recipes food2vecData32 food2vecData256 foodstuffAmounts 
         JaccardSimilarity.recommend recipes foodstuffIds |> Seq.take 10 |> Seq.toList)
     
     let (plainTfIdfResults, plainTfIdfResultsMs) = profilePerformance (fun () ->
-        TfIdf.recommend statistics foodstuffAmounts |> Seq.take 10 |> Seq.map (fun i -> i.Recipe) |> Seq.toList)
+        TfIdf.recommend statistics foodstuffAmounts |> Seq.take 10 |> Seq.map (fun i -> i.Info.Recipe) |> Seq.toList)
     
     let (textTfIdfResults, textTfIdfResultsMs) = profilePerformance (fun () ->
         TextTfIdf.recommend recipes foodstuffWords |> Seq.take 10 |> Seq.toList)
     
     let (calibratedTfIdfResults, calibratedTfIdfResultsMs) = profilePerformance (fun () ->
-        // TODO: implement calibration.
-        TfIdf.recommend statistics foodstuffAmounts |> Seq.take 10 |> Seq.map (fun i -> i.Recipe) |> Seq.toList)
+        let weight = (TfIdf.tfIdf statistics) >> second
+        let infos = TfIdf.recommend statistics foodstuffAmounts |> Seq.toList
+        let recipes = infos |> List.map (fun i -> i.Info.Recipe)
+        let recipeVectors = infos |> List.map (fun i -> (i.Info.Recipe.Id, i.Vector)) |> Map.ofList
+        let similarity foodstuffAmountInfos recipe =
+            let queryVector = foodstuffAmountInfos |> List.map (fun i -> (i.Amount.FoodstuffId, i.Weight)) |> Map.ofList
+            let recipeVector = Map.find recipe.Id recipeVectors
+            Library.cosineSimilarity queryVector recipeVector
+            
+        Calibration.calibrate similarity weight recipes foodstuffAmounts 10)
     
     let (diversifiedTfIdfResults, diversifiedTfIdfResultsMs) = profilePerformance (fun () ->
-        let infos = TfIdf.recommend statistics foodstuffAmounts
+        let infos = TfIdf.recommend statistics foodstuffAmounts |> Seq.map (fun i -> i.Info)
         Diversity.postProcess infos (TfIdf.recipeSimilarity statistics) 10 |> List.map (fun r -> r.Recipe))
     
     let (plainWordToVecResults, plainWordToVecResultsMs) = profilePerformance (fun () ->
@@ -73,9 +81,9 @@ let showRecommendations recipes food2vecData32 food2vecData256 foodstuffAmounts 
         let recipeVectors = infos |> List.map (fun i -> (i.Info.Recipe.Id, i.Vector)) |> Map.ofList
         let similarity foodstuffAmountInfos recipe =
             let weightsByFoodstuffAmount = foodstuffAmountInfos |> List.map (fun i -> (i.Amount.FoodstuffId, i.Weight)) |> Map.ofList
-            let queryVector = vectorize food2vecData256 (fun a -> Map.find a.FoodstuffId weightsByFoodstuffAmount) foodstuffAmounts
+            let queryVector = FoodToVector.vectorize food2vecData256 (fun a -> Map.find a.FoodstuffId weightsByFoodstuffAmount) foodstuffAmounts
             let recipeVector = Map.find recipe.Id recipeVectors
-            cosineSimilarity queryVector recipeVector
+            FoodToVector.cosineSimilarity queryVector recipeVector
             
         Calibration.calibrate similarity weight recipes foodstuffAmounts 10)
     

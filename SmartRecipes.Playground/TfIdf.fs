@@ -59,7 +59,12 @@ let vectorizeRecipe statistics r =
     r.Ingredients |> List.map (fun i -> i.Amount) |> vectorize statistics
     
 let recipeSimilarity statistics r1 r2 =
-    cosineSimilarity (vectorizeRecipe statistics r1) (vectorizeRecipe statistics r2) 
+    cosineSimilarity (vectorizeRecipe statistics r1) (vectorizeRecipe statistics r2)
+    
+type TfIdfRecipeInfo = {
+    Info: RecipeInfo
+    Vector: Vector
+}
     
 let recommend statistics foodstuffAmounts =
     let inputVector = vectorize statistics foodstuffAmounts
@@ -72,7 +77,7 @@ let recommend statistics foodstuffAmounts =
         relevantRecipes
         |> Seq.map (fun r ->
             let vector = vectorizeRecipe statistics r
-            { Recipe = r; InputSimilarity = cosineSimilarity vector inputVector })
-        |> Seq.sortByDescending (fun r -> r.InputSimilarity)
+            { Info = { Recipe = r; InputSimilarity = cosineSimilarity vector inputVector }; Vector = vector })
+        |> Seq.sortByDescending (fun r -> r.Info.InputSimilarity)
         
     recipesToRecommend
