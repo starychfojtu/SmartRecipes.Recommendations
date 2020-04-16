@@ -132,17 +132,17 @@ let showRecommendations recipes food2vecData32 food2vecData256 foodstuffAmounts 
         printfn "Recipe: %s; Count: %i <br>" recipe count
     printfn ""
     
+    printMethod "Food2Vec 256/10 (TF-IDF weighted mean, Calibration)" calibratedWithElectionTfIdfWeightedWordToVec256Results calibratedWithElectionTfIdfWeightedWordToVec256ResultsMs ((findMaxSimilarity foodstuffIds) >> Distance)
+    printMethod "TF-IDF with structured data (Calibration)" calibratedTfIdfResults calibratedTfIdfResultsMs (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) foodstuffAmounts |> Binary)
+    printMethod "Food2Vec 256/10 (TF-IDF weighted mean, MMR)" diversifiedTfIdfWeightedWordToVec256Results diversifiedTfIdfWeightedWordToVec256ResultsMs ((findMaxSimilarity foodstuffIds) >> Distance)
+    printMethod "TF-IDF with structured data (MMR)" diversifiedTfIdfResults diversifiedTfIdfResultsMs (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) foodstuffAmounts |> Binary)
     printMethod "Jaccard" jacccardResults jaccardResultsMs (fun i -> List.exists (fun id -> id = i.Amount.FoodstuffId) foodstuffIds |> Binary)
     printMethod "TF-IDF with structured data" plainTfIdfResults plainTfIdfResultsMs (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) foodstuffAmounts |> Binary)
     printMethod "TF-IDF with text data" textTfIdfResults textTfIdfResultsMs (fun i -> List.exists (fun (t: string) -> i.DisplayLine.ToLowerInvariant().Contains(t)) foodstuffWords |> Binary)
-    printMethod "TF-IDF with structured data (Calibration)" calibratedTfIdfResults calibratedTfIdfResultsMs (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) foodstuffAmounts |> Binary)
-    printMethod "TF-IDF with structured data (MMR)" diversifiedTfIdfResults diversifiedTfIdfResultsMs (fun i -> List.exists (fun a -> a.FoodstuffId = i.Amount.FoodstuffId) foodstuffAmounts |> Binary)
     printMethod "Food2Vec 256/10 (mean)" plainWordToVecResults plainWordToVecResultsMs ((findMaxSimilarity foodstuffIds) >> Distance)
     printMethod "Food2Vec 256/10 (TF weighted mean)" tfWeightedWordToVecResults tfWeightedWordToVecResultsMs ((findMaxSimilarity foodstuffIds) >> Distance)
     printMethod "Food2Vec 256/10 (TF-IDF weighted mean)" tfIdfWeightedWordToVecResults tfIdfWeightedWordToVecResultsMs ((findMaxSimilarity foodstuffIds) >> Distance)
-    printMethod "Food2Vec 256/10 (TF-IDF weighted mean, MMR)" diversifiedTfIdfWeightedWordToVec256Results diversifiedTfIdfWeightedWordToVec256ResultsMs ((findMaxSimilarity foodstuffIds) >> Distance)
     printMethod "Food2Vec 32/8 (TF-IDF weighted mean, MMR)" diversifiedTfIdfWeightedWordToVec32Results diversifiedTfIdfWeightedWordToVec32ResultsMs ((findMaxSimilarity foodstuffIds) >> Distance)
-    printMethod "Food2Vec 256/10 (TF-IDF weighted mean, Election Calibration)" calibratedWithElectionTfIdfWeightedWordToVec256Results calibratedWithElectionTfIdfWeightedWordToVec256ResultsMs ((findMaxSimilarity foodstuffIds) >> Distance)
     
     printfn "</div>"
     printfn "<div style=\"clear: both;\"></div>"
