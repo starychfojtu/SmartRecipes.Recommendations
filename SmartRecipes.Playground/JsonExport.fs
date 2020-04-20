@@ -1,7 +1,5 @@
 module SmartRecipes.Playground.JsonExport
 
-open System
-
 type Ingredient = {
     DisplayLine: string
     IsInputMatch: bool
@@ -11,7 +9,7 @@ type RecipeId = string
 
 type Recipe = {
     Id: RecipeId
-    Uri: Uri
+    Uri: string
     Name: string
     Ingredients: Ingredient list
 }

@@ -3,6 +3,7 @@ open SmartRecipes.Playground
 open SmartRecipes.Playground.FoodToVector
 open SmartRecipes.Playground.Model
 open System
+open System
 open Calibration
 open FSharp.Json
 
@@ -84,14 +85,14 @@ let showRecommendations recipes food2vecData32 food2vecData256 foodstuffAmounts 
         let ingredient (ingredient: Ingredient) =
             {
                 JsonExport.Ingredient.DisplayLine = ingredient.DisplayLine
-                JsonExport.Ingredient.IsInputMatch = match similarity ingredient with Binary m -> m | Distance d -> d = 1.0
+                JsonExport.Ingredient.IsInputMatch = match similarity ingredient with Binary m -> m | Distance d -> Math.Abs (d - 1.0) < 0.2
             }
             
         let recipe (recipe: Recipe) =
             {
                 JsonExport.Recipe.Id = (recipe.Id.ToString())
                 JsonExport.Recipe.Name = recipe.Name
-                JsonExport.Recipe.Uri = recipe.Url
+                JsonExport.Recipe.Uri = (recipe.Url.ToString())
                 JsonExport.Recipe.Ingredients = recipe.Ingredients |> List.map ingredient
             }
         {
