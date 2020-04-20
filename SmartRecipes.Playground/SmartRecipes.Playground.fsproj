@@ -13,9 +13,11 @@
     <Compile Include="Calibration.fs" />
     <Compile Include="Diversity.fs" />
     <Compile Include="FoodToVector.fs" />
+    <Compile Include="JsonExport.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="FSharp.Json" Version="0.4.0" />
     <PackageReference Include="Npgsql.FSharp" Version="1.19.0" />
   </ItemGroup>
 </Project>
