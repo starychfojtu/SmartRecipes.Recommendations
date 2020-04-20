@@ -10,6 +10,7 @@ type RecipeId = string
 type Recipe = {
     Id: RecipeId
     Uri: string
+    ImageUri: string
     Name: string
     Ingredients: Ingredient list
 }
