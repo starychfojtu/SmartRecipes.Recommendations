@@ -84,6 +84,7 @@ let showRecommendations recipes food2vecData32 food2vecData256 foodstuffAmounts 
     let method id name recommendations performance similarity =
         let ingredient (ingredient: Ingredient) =
             {
+                JsonExport.Ingredient.FoodstuffId = ingredient.Amount.FoodstuffId.ToString()
                 JsonExport.Ingredient.DisplayLine = ingredient.DisplayLine
                 JsonExport.Ingredient.IsInputMatch = match similarity ingredient with Binary m -> m | Distance d -> Math.Abs (d - 1.0) < 0.2
             }

@@ -1,6 +1,7 @@
 module SmartRecipes.Playground.JsonExport
 
 type Ingredient = {
+    FoodstuffId: string
     DisplayLine: string
     IsInputMatch: bool
 }
