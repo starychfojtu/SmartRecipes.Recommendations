@@ -1,67 +1,62 @@
 ﻿// Learn more about F# at http://fsharp.org
 
 open System
-open System.IO
 open SmartRecipes.Playground
-
-let readLines (filePath : string) =
-    seq {
-        use sr = new StreamReader(filePath)
-        while not sr.EndOfStream do
-            let line = sr.ReadLine()
-            yield if (line.Contains("]")) then line
-                  else line + sr.ReadLine()
-    }
+    
+let euclideanDistance v1 v2 =
+    Array.zip v1 v2
+    |> Array.map (fun (a, b) -> Math.Pow(a - b, 2.0))
+    |> Array.sum
+    |> Math.Sqrt
+    
+let sortByNearest vector vectors =
+    vectors
+    |> Map.toList
+    |> Seq.map (fun (f, v) -> (f, FoodToVector.cosineSimilarity v vector))
+    |> Seq.sortByDescending (fun (_, d) -> d)
 
 [<EntryPoint>]
 let main argv =
-
     let foodstuffByIds =
         DataStore.getFoodstuff()
         |> List.map (fun f -> (f.Id, f))
         |> Map.ofList
 
-    let ingredients = DataStore.getIngredients()
-
-    let recipeIdsByFoodstuffId =
-        ingredients
-        |> List.groupBy (fun i -> i.Amount.FoodstuffId)
-        |> List.map (fun (fId, is) -> (fId, is |> List.map (fun i -> i.RecipeId)))
-        |> Map.ofList
-
-    let foodstuffIdsByRecipeId =
-        ingredients
-        |> List.groupBy (fun i -> i.RecipeId)
-        |> List.map (fun (rId, is) ->
-            (rId,
-             is
-             |> List.map (fun i -> i.Amount.FoodstuffId)
-             |> Set.ofList))
-        |> Map.ofList
+//    let ingredients = DataStore.getIngredients()
+//
+//    let recipeIdsByFoodstuffId =
+//        ingredients
+//        |> List.groupBy (fun i -> i.Amount.FoodstuffId)
+//        |> List.map (fun (fId, is) -> (fId, is |> List.map (fun i -> i.RecipeId)))
+//        |> Map.ofList
+//
+//    let foodstuffIdsByRecipeId =
+//        ingredients
+//        |> List.groupBy (fun i -> i.RecipeId)
+//        |> List.map (fun (rId, is) ->
+//            (rId,
+//             is
+//             |> List.map (fun i -> i.Amount.FoodstuffId)
+//             |> Set.ofList))
+//        |> Map.ofList
 
     let fileLocation = argv.[0]
-    let lines = readLines fileLocation
-
-    let totalMatches =
-        lines
-        |> Seq.map (fun line ->
-            let parts = line.Split(',')
-            let foodstuff = Map.find (Guid(parts.[0])) foodstuffByIds
-            let vector = parts.[1]
-            let closestFoodstuff = Map.find (Guid(parts.[2])) foodstuffByIds
-
-            let matches =
-                Map.tryFind foodstuff.Id recipeIdsByFoodstuffId
-                |> Option.defaultValue List.empty
-                |> List.map (fun rId -> Map.find rId foodstuffIdsByRecipeId)
-                |> List.filter (fun fIds -> Set.contains closestFoodstuff.Id fIds)
-                |> List.length
-
-            printfn "%d %s -> %s" matches foodstuff.Name closestFoodstuff.Name
-
-            matches)
-        |> Seq.sum
-
-    printfn "Summed matches %d" totalMatches
-
+    let vectors = FoodToVector.Data.loadFoodstuffVectors fileLocation
+    
+    printfn "WordId:"
+    let mutable word = Console.ReadLine()
+    
+    while (word <> "") do
+        let redOnionId = Guid.Parse(word)
+        let redOnionVector = Map.find redOnionId vectors
+        let nearest = sortByNearest redOnionVector vectors |> Seq.take 30
+        
+        for (foodstuffId, distance) in nearest do
+            let foodstuff = Map.find foodstuffId foodstuffByIds
+            printfn "%s %f" foodstuff.Name distance
+        
+        printfn "WordId:"
+        word <- Console.ReadLine()
+        
+        
     0

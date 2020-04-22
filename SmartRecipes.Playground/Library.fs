@@ -28,19 +28,6 @@ let dotProduct v1 v2 =
 let cosineSimilarity v1 v2 =
     (dotProduct v1 v2) / ((magnitude v1) * (magnitude v2))
     
-let euclideanDistance v1 v2 =
-    let getKeys map = Map.toSeq map |> Seq.map first
-    Seq.append (getKeys v1) (getKeys v2)
-    |> Seq.distinct
-    |> Seq.map (fun k ->
-        match (Map.tryFind k v1), (Map.tryFind k v2) with
-        | Some a, Some b -> Math.Pow(a - b, 2.0)
-        | Some a, None -> Math.Pow(a, 2.0)
-        | None, Some b -> Math.Pow(b, 2.0)
-        | None, None -> 0.0)
-    |> Seq.sum
-    |> Math.Sqrt
-    
 type Vector = Map<Guid, float>
 
 let profilePerformance f =

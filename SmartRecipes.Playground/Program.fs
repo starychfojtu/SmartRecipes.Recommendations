@@ -3,7 +3,6 @@ open SmartRecipes.Playground
 open SmartRecipes.Playground.FoodToVector
 open SmartRecipes.Playground.Model
 open System
-open System
 open Calibration
 open FSharp.Json
 
